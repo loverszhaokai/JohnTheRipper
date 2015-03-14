@@ -70,7 +70,8 @@ int random_int(const int min_v, const int max_v);
  * John the ripper fuzz  *
  *************************/
 int john_fuzz(char **argv, const u8 * const in_buf, const s32 len,
-	      const char * const out_dir, const char * const file_name);
+	      const char * const out_dir, const char * const file_name,
+	      const u8 is_save_cases);
 
 
 

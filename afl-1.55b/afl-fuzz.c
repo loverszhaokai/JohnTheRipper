@@ -253,6 +253,7 @@ static s32 interesting_32[] = { INTERESTING_8, INTERESTING_16, INTERESTING_32 };
 /* Email: loverszhao@gmail.com */
 u8 is_john_mode = 0;
 u8 is_open_stdout = 0;
+u8 is_save_cases = 0;
 
 /* Fuzzing stages */
 
@@ -5892,7 +5893,7 @@ static u8 john_fuzz_one(char** argv) {
   close(fd);
 
   char *file_name = 1 + strrchr(queue_cur->fname, ':');  
-  john_fuzz(argv, in_buf, len, out_dir, file_name);
+  john_fuzz(argv, in_buf, len, out_dir, file_name, is_save_cases);
 
   return ret_val;
 }
@@ -6921,7 +6922,7 @@ int main(int argc, char** argv) {
 
   doc_path = access(DOC_PATH, F_OK) ? "docs" : DOC_PATH;
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:jp")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:jps")) > 0)
 
     switch (opt) {
 
@@ -7080,6 +7081,11 @@ int main(int argc, char** argv) {
 	      
 	      /* This is For John The ripper jumbo */
 	      is_open_stdout = 1;
+	      break;
+      case 's':
+	      
+	      /* This is For John The ripper jumbo */
+	      is_save_cases = 1;
 	      break;
       default:
 
