@@ -128,9 +128,9 @@
   <string is_mutate="false">$</string>                                                     <!--id=2-->
   <string is_mutate="false" length="1" type="NUM">1</string>                               <!--id=3-->
   <string is_mutate="false">$</string>                                                     <!--id=4-->
-  **<string length="40" type="HEX_STR_L">599fe00cdb61f76cc6e949162f22c95943468acb</string>   <!--id=5-->**
+  <string length="40" type="HEX_STR_L">599fe00cdb61f76cc6e949162f22c95943468acb</string>   <!--id=5-->
   <string is_mutate="false">$</string>                                                     <!--id=6-->
-  **<string length="40" type="HEX_STR_L">002e45951f62602b2f5d15df217f49da2f5379cb</string>   <!--id=7-->**
+  <string length="40" type="HEX_STR_L">002e45951f62602b2f5d15df217f49da2f5379cb</string>   <!--id=7-->
 </DataElement>
 
 </AFL>
@@ -138,7 +138,7 @@
 ```
 
 AFL will generate **90** cases. And **all** of those cases **can** pass the valid() of src/siemens-s7_fmt_plug.c.
-Because only the No.5 and No.7 elements can be mutated, and they can only be replaced by those string whose length is 40 and which are lower hex string.
+Because only the No.**5** and No.**7** elements can be mutated, and they can only be replaced by those string whose length is 40 and which are lower hex string.
 
 
 ### siemens-s7.xml(Invalid)
@@ -164,7 +164,7 @@ Because only the No.5 and No.7 elements can be mutated, and they can only be rep
 ```
 
 AFL will generate 90 cases. And **most** of those cases **can not** pass the valid() of src/siemens-s7_fmt_plug.c.
-Because each elements can be mutated. And for example once the No.1 element is mutated, the case will not pass the valid().
+Because each elements can be mutated. And for example once the No.**1** element is mutated, the case will not pass the valid().
 
 
 ## Fuzz Algorithm
