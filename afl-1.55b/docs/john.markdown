@@ -128,9 +128,9 @@
   <string is_mutate="false">$</string>                                                     <!--id=2-->
   <string is_mutate="false" length="1" type="NUM">1</string>                               <!--id=3-->
   <string is_mutate="false">$</string>                                                     <!--id=4-->
-  <string length="40" type="HEX_STR_L">599fe00cdb61f76cc6e949162f22c95943468acb</string>   <!--id=5-->
+  **<string length="40" type="HEX_STR_L">599fe00cdb61f76cc6e949162f22c95943468acb</string>   <!--id=5-->**
   <string is_mutate="false">$</string>                                                     <!--id=6-->
-  <string length="40" type="HEX_STR_L">002e45951f62602b2f5d15df217f49da2f5379cb</string>   <!--id=7-->
+  **<string length="40" type="HEX_STR_L">002e45951f62602b2f5d15df217f49da2f5379cb</string>   <!--id=7-->**
 </DataElement>
 
 </AFL>
