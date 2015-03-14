@@ -208,15 +208,17 @@ int create_folder(const char* const out_dir, const char* const file_name) {
  *************************/
 
 int john_fuzz(char **argv, const u8 * const in_buf, const s32 len,
-	      const char * const out_dir, const char * const file_name) {
+	      const char * const out_dir, const char * const file_name,
+	      const u8 is_save_cases) {
   printf("\n\t====john_fuzz()====\n\n");
 
   srand (time(NULL));
 
-  printf("out_dir=%s\n", out_dir);
-  printf("file_name=%s\n", file_name);
+  // printf("out_dir=%s\n", out_dir);
+  // printf("file_name=%s\n", file_name);
+  // printf("is_save_cases=%d\n", is_save_cases);
 
-  if (0 != create_folder(out_dir, file_name))
+  if (is_save_cases && (0 != create_folder(out_dir, file_name)))
     return 1;
 
   // printf("\nin_buf=%s\n", in_buf);
@@ -248,7 +250,8 @@ int john_fuzz(char **argv, const u8 * const in_buf, const s32 len,
 
     common_fuzz_stuff(argv, out_buf, out_buf_index);
 
-    save_to_file(iteration_id, out_buf, out_buf_index);
+    if (is_save_cases)
+      save_to_file(iteration_id, out_buf, out_buf_index);
 
     iteration_id++;
   }
