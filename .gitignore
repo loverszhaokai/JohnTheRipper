@@ -70,3 +70,17 @@ src/stamp-h1
 src/Unicode
 
 test/
+
+afl-1.55b/afl-as
+afl-1.55b/afl-clang
+afl-1.55b/afl-clang++
+afl-1.55b/afl-fuzz
+afl-1.55b/afl-g++
+afl-1.55b/afl-gcc
+afl-1.55b/afl-gotcpu
+afl-1.55b/afl-showmap
+afl-1.55b/afl-tmin
+afl-1.55b/as
+
+afl-1.55b/john_test/a.out
+afl-1.55b/john_test/out
