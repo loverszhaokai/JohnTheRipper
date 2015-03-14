@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AFL case_number="10000">
+
+<!-- Valid format -->
+<DataElement>
+  <string is_mutate="false">$siemens-s7</string>
+  <string is_mutate="false">$</string>
+  <string length="1" type="NUM">1</string>
+  <string is_mutate="false">$</string>    
+  <string length="40" type="HEX_STR_L">599fe00cdb61f76cc6e949162f22c95943468acb</string>
+  <string is_mutate="false">$</string>                                                  
+  <string length="40" type="HEX_STR_L">002e45951f62602b2f5d15df217f49da2f5379cb</string> 
+</DataElement>
+
+
+<!-- Invalid format -->
+<DataElement>
+  <string is_mutate="false">$siemens-s7</string>
+  <string>$</string>
+  <string>1</string>
+  <string>$</string>    
+  <string type="HEX_STR_L">599fe00cdb61f76cc6e949162f22c95943468acb</string>
+  <string>$</string>                                                  
+  <string type="HEX_STR_L">002e45951f62602b2f5d15df217f49da2f5379cb</string> 
+</DataElement>
+
+
+<!-- Invalid format -->
+<DataElement>
+  <string>$siemens-s7</string>
+  <string>$</string>
+  <string>1</string>
+  <string>$</string>    
+  <string type="HEX_STR_L">599fe00cdb61f76cc6e949162f22c95943468acb</string>
+  <string>$</string>                                                  
+  <string type="HEX_STR_L">002e45951f62602b2f5d15df217f49da2f5379cb</string> 
+</DataElement>
+
+</AFL>
+
