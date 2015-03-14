@@ -25,7 +25,7 @@ Fuzzing results will be placed in output/.
 
 ## AFL
 
-For more information about AFL, please see [https://github.com/loverszhaokai/JohnTheRipper/blob/add_afl/afl-1.55b/docs/README].
+For more information about AFL, please see [readme](https://github.com/loverszhaokai/JohnTheRipper/blob/add_afl/afl-1.55b/docs/README).
 
 ### Advantages
 
