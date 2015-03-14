@@ -61,6 +61,9 @@
 #endif /* __APPLE__ || __FreeBSD__ || __OpenBSD__ */
 
 
+#include "john.h"
+
+
 /* Lots of globals, but mostly for the status UI and other things where it
    really makes no sense to haul them around as function parameters. */
 
@@ -243,6 +246,13 @@ static u8* (*post_handler)(u8* buf, u32* len);
 static s8  interesting_8[]  = { INTERESTING_8 };
 static s16 interesting_16[] = { INTERESTING_8, INTERESTING_16 };
 static s32 interesting_32[] = { INTERESTING_8, INTERESTING_16, INTERESTING_32 };
+
+/* John mode */
+/* The input file like the peach-fuzzer's script */
+/* This mode is add by Kai Zhao */
+/* Email: loverszhao@gmail.com */
+u8 is_john_mode = 0;
+u8 is_open_stdout = 0;
 
 /* Fuzzing stages */
 
@@ -632,7 +642,6 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
   }
 
   last_path_time = get_cur_time();
-
 }
 
 
@@ -1706,8 +1715,10 @@ static void init_forkserver(char** argv) {
 
     setsid();
 
-    dup2(dev_null_fd, 1);
-    dup2(dev_null_fd, 2);
+    if (!is_open_stdout) {
+      dup2(dev_null_fd, 1);
+      dup2(dev_null_fd, 2);
+    }
 
     if (out_file) {
 
@@ -2758,7 +2769,13 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
 #endif /* ^!SIMPLE_FILES */
 
-    add_to_queue(fn, len, 0);
+    if (is_john_mode) {
+
+      queued_paths++;
+      pending_not_fuzzed++;
+      last_path_time = get_cur_time();
+
+    } else add_to_queue(fn, len, 0);
 
     if (hnb == 2) {
       queue_top->has_new_cov = 1;
@@ -3367,6 +3384,8 @@ dir_cleanup_failed:
    execve() calls, plus in several other circumstances. */
 
 static void show_stats(void) {
+
+  if (is_john_mode) return;
 
   static u64 last_stats_ms, last_plot_ms, last_ms, last_execs;
   static double avg_exec;
@@ -4024,7 +4043,7 @@ abort_trimming:
    error conditions, returning 1 if it's time to bail out. This is
    a helper function for fuzz_one(). */
 
-static u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
+u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
 
   u8 fault;
 
@@ -4193,6 +4212,7 @@ static u8 fuzz_one(char** argv) {
   u8  a_collect[MAX_AUTO_EXTRA];
   u32 a_len = 0;
 
+
 #ifdef IGNORE_FINDS
 
   /* In IGNORE_FINDS mode, skip any entries that weren't in the
@@ -4243,6 +4263,9 @@ static u8 fuzz_one(char** argv) {
   len = queue_cur->len;
 
   orig_in = in_buf = mmap(0, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+
+  // printf("in_buf=%s|||||\n\n", in_buf);
+
 
   if (orig_in == MAP_FAILED) PFATAL("Unable to mmap '%s'", queue_cur->fname);
 
@@ -5845,6 +5868,35 @@ abandon_entry:
 
 }
 
+static u8 john_fuzz_one(char** argv) {
+
+	printf("\n\t====john_fuzz_one()====\n\n");
+
+  s32 len, fd;
+  u8  *in_buf, *orig_in;
+  u8  ret_val = 1;
+
+  /* Map the test case into memory. */
+  fd = open(queue_cur->fname, O_RDONLY);
+
+  if (fd < 0) PFATAL("Unable to open '%s'", queue_cur->fname);
+
+  len = queue_cur->len;
+
+  orig_in = in_buf = mmap(0, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+
+  // printf("in_buf=%s|||||\n\n", in_buf);
+
+  if (orig_in == MAP_FAILED) PFATAL("Unable to mmap '%s'", queue_cur->fname);
+
+  close(fd);
+
+  char *file_name = 1 + strrchr(queue_cur->fname, ':');  
+  john_fuzz(argv, in_buf, len, out_dir, file_name);
+
+  return ret_val;
+}
+
 
 /* Grab interesting test cases from other fuzzers. */
 
@@ -6851,6 +6903,11 @@ static void save_cmdline(u32 argc, char** argv) {
 
 int main(int argc, char** argv) {
 
+
+  printf("\n\n\tTBD: change the TBD in this file\n\n\n\n");
+  sleep(1);
+
+
   s32 opt;
   u64 prev_queued = 0;
   u32 sync_interval_cnt = 0, seek_to;
@@ -6864,7 +6921,7 @@ int main(int argc, char** argv) {
 
   doc_path = access(DOC_PATH, F_OK) ? "docs" : DOC_PATH;
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:jp")) > 0)
 
     switch (opt) {
 
@@ -7014,6 +7071,16 @@ int main(int argc, char** argv) {
 
         break;
 
+      case 'j':
+	      
+	      /* This is For John The ripper jumbo */
+	      is_john_mode = 1;
+	      break;
+      case 'p':
+	      
+	      /* This is For John The ripper jumbo */
+	      is_open_stdout = 1;
+	      break;
       default:
 
         usage(argv[0]);
@@ -7141,13 +7208,14 @@ int main(int argc, char** argv) {
 
     }
 
-    skipped_fuzz = fuzz_one(use_argv);
+    if (is_john_mode)
+      skipped_fuzz = john_fuzz_one(use_argv);
+    else 
+      skipped_fuzz = fuzz_one(use_argv);
 
     if (!stop_soon && sync_id && !skipped_fuzz) {
-      
       if (!(sync_interval_cnt++ % SYNC_INTERVAL))
         sync_fuzzers(use_argv);
-
     }
 
     if (stop_soon) break;
@@ -7155,6 +7223,9 @@ int main(int argc, char** argv) {
     queue_cur = queue_cur->next;
     current_entry++;
 
+    /* John mode */
+    /* Break if the queue_cur is null */
+    if (is_john_mode && NULL == queue_cur) break;
   }
 
   if (queue_cur) show_stats();

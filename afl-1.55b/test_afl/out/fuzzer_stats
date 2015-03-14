@@ -1,0 +1,20 @@
+start_time     : 1426164399
+last_update    : 1426164399
+fuzzer_pid     : 3805
+cycles_done    : 0
+execs_done     : 114
+execs_per_sec  : 0.00
+paths_total    : 2
+paths_found    : 0
+paths_imported : 0
+max_depth      : 1
+cur_path       : 2
+pending_favs   : 1
+pending_total  : 2
+variable_paths : 0
+bitmap_cvg     : 0.00%
+unique_crashes : 1
+unique_hangs   : 0
+afl_banner     : a.out
+afl_version    : 1.55b
+command_line   : ../afl-fuzz -p -m none -j -i test_cases/ -o out/ ./a.out
