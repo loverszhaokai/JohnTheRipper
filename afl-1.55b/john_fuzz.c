@@ -190,7 +190,7 @@ int create_folder(const char* const out_dir, const char* const file_name) {
 
   folder_name_buf[i] = '\0';
 	
-  printf("folder_name_buf=%s\n", folder_name_buf);
+  // printf("folder_name_buf=%s\n", folder_name_buf);
 
   if (0 != access(folder_name_buf, R_OK | W_OK)) {
 
@@ -240,7 +240,7 @@ int john_fuzz(char **argv, const u8 * const in_buf, const s32 len,
 
   while (iteration_id < case_number + 1) {
 
-    printf("\n\t%s--[%d]\n", file_name, iteration_id);
+    printf("\n\t%s--[%d/%d]\n", file_name, iteration_id, case_number);
 
     // FUZZ until user cancel
 
