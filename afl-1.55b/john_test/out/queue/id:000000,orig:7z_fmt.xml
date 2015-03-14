@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AFL case_number="90">
+
+<!-- Valid format -->
+<DataElement>
+  <string is_mutate="false">$7z$</string>
+  <string length="1" type="NUM">1</string> <!-- 1 or 0 -->
+  <string is_mutate="false">$</string>
+  <string length="40" type="HEX_STR_U">599fe00cdb61f76cc6e949162f22c95943468acb</string>
+  <string is_mutate="false">==================================</string>
+  <string type="HEX_STR">599fe00cdb61f76cc6e949162f22c95943468acb</string>
+
+</DataElement>
+
+</AFL>
+
