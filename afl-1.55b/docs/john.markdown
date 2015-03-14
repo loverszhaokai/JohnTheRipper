@@ -197,7 +197,6 @@ generate a case
 
 
 // Randomly return a string of characters which length is from min to max
-
 rand_str(min, max);
 
 
@@ -205,7 +204,6 @@ rand_str(min, max);
 
 
 // Randomly return a number string which length is from min to max
-
 rand_num_str(min, max);
 
 
@@ -220,7 +218,6 @@ rand_hex_str(min, max);
 
 
 // Randomly return a hex string which length is from min to max, contains only upper case
-
 rand_hex_str_u(min, max);
 
 
@@ -228,7 +225,6 @@ rand_hex_str_u(min, max);
 
 
 // Randomly return a hex string which length is from min to max, contains only lower case
-
 rand_hex_str_l(min, max);
 
 
