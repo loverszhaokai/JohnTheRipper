@@ -24,6 +24,7 @@ static int mutate_elements_size = 0;                         // The number of el
 static int mutate_id_arr[MAX_ELEMENTS + 1] = { 0 };          // Mutate ids which will be mutated in current iteration
 static char folder_name_buf[FOLDER_NAME_SIZE + 1] = { 0 };   // Folder name
 static char file_name_buf[FILE_NAME_SIZE + 1] = { 0 };       // File name contians the folder name, such as out/7z_fmt/1
+static int total_case_number = 0;
 
 static void john_free(struct JohnElement *je) {
   if (NULL == je)
@@ -240,7 +241,7 @@ int john_fuzz(char **argv, const u8 * const in_buf, const s32 len,
 
   while (iteration_id < case_number + 1) {
 
-    printf("\n\t%s--[%d/%d]\n", file_name, iteration_id, case_number);
+    printf("\n\t%s--[%d/%d/%d]\n", file_name, ++total_case_number, iteration_id, case_number);
 
     // FUZZ until user cancel
 
