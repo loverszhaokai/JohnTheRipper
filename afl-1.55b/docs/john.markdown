@@ -2,6 +2,7 @@
 
 ## XML Schema
 
+```
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema>
 
@@ -101,6 +102,7 @@
 	</xs:element>	
 
 </xs:schema>
+```
 
 
 ## Strategy
