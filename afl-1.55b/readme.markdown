@@ -48,10 +48,11 @@ The input file only can be mutated by the few functions in AFL, but there is mor
 
 ### John mode
 
-To use John mode you should add **'-j'** option in afl-fuzz, such as afl-fuzz -j ...
+The main goal of john mode is to mutate the hash file as we want. With the built-in support, user can control how to mutate the hash file. I think it is **GREAT**!
 
 The input file is written in xml and it should follow the [strict format](http://address_to_add.com), the idea is inspired by [peach fuzzer pit file](http://old.peachfuzzer.com/v3/PeachPit.html).
-The main goal of john mode is to mutate the hash file as we want. With the built-in support, user can control how to mutate the hash file. I think it is **GREAT**!
+
+To use John mode you should add **'-j'** option in afl-fuzz, such as afl-fuzz -j ...
 
 * print fuzz info
 
