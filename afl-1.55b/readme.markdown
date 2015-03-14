@@ -14,7 +14,8 @@ JOHN_PATH is the path of JohnTHERipper.
 ### Compile john
 
     $ cd JOHN_PATH/src
-    $ AFL_USE_ASAN=1 AFL_HARDEN=1 ./configure CC=afl-gcc --disable-shared --enable-asan && make -sj8
+    $ AFL_USE_ASAN=1 AFL_HARDEN=1 ./configure CC=afl-gcc --disable-shared --enable-asan 
+    $ make -sj8
 
 ### Fuzz
 
@@ -29,13 +30,9 @@ For more information about AFL, please see [readme](https://github.com/loverszha
 
 ### Advantages
 
-When source code is available, instrumentation can be injected by a companion
-tool that works as a drop-in replacement for gcc or clang in any standard build
-process for third-party code.
+When source code is available, instrumentation can be injected by a companion tool that works as a drop-in replacement for gcc or clang in any standard build process for third-party code.
 
-The instrumentation has a fairly modest performance impact; in conjunction with
-other optimizations implemented by afl-fuzz, most programs can be fuzzed as fast
-or even faster than possible with traditional tools.
+The instrumentation has a fairly modest performance impact; in conjunction with other optimizations implemented by afl-fuzz, most programs can be fuzzed as fast or even faster than possible with traditional tools.
 
 
 ### Disadvantages
@@ -53,8 +50,8 @@ The input file only can be mutated by the few functions in AFL, but there is mor
 
 To use John mode you should add **'-j'** option in afl-fuzz, such as afl-fuzz -j ...
 
-The input file is written in xml and it should follow the format[http://], the idea is inspired by peach fuzzer pit file[http://].
-With the xml input file, user can define how to mutate the hash file with our support. It's Great!
+The input file is written in xml and it should follow the [strict format](http://address_to_add.com), the idea is inspired by [peach fuzzer pit file](http://old.peachfuzzer.com/v3/PeachPit.html).
+The main goal of john mode is to mutate the hash file as we want. With the built-in support, user can control how to mutate the hash file. I think it is **GREAT**!
 
 * print fuzz info
 
