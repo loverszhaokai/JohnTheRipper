@@ -60,4 +60,5 @@ To print fuzz info of each iteration, user can add **'-p'** option, such as afl-
 
 * auto save mutated cases
 
-In john mode, each mutated cases will be saved in the out dir, it is easy for users to look the mutated results.
+In john mode, each mutated cases can be saved in the out dir, it is easy for users to look the mutated results.
+To save mutated cases, user should add **'-s'** option, such as afl-fuzz -s ...
