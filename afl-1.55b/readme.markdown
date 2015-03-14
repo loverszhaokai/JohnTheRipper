@@ -1,6 +1,3 @@
-This is README for john
-
-
 # Fuzz JohnTheRipper With American Fuzzy Lop (AFL)
 
 ## Quick Start
