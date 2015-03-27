@@ -30,7 +30,8 @@ $ ./fuzz_options  ../../../run/john  parameter_config_file  --max-run-time=1
 ```
 
 The last parameters can have one to seven parameters which will always sent to target app.
-The command options which leads to crash will be written to **./crashes**
+In order to run fast, it would be better to add "--max-run-time=1". The command options which 
+leads to crash will be written to **./crashes**
 
 ## 2. Parameter Config File
 
@@ -47,7 +48,6 @@ value_3
 ```
 
 ## 3. Mechanism
-
 
 ### 3.1 Mechanism of Fuzz Options
 
@@ -91,6 +91,10 @@ p[i][1]          p[i+1][1]            p[i+2][1]            ...  p[i+m-2][2]     
 ...              ...                  ...                  ...  ...                      ...
 p[i][p[i].size]  p[i+1][p[i+1].size]  p[i+2][p[i+2].size]  ...  p[i+m-2][p[i+m-2].size]  p[i+m-1][p[i+m-1].size]
 ```
+
+Note: The number of total cases will increase explosively with the increase of command 
+options. When the number of the total cases is larger than millon, it's hard to finish 
+the test in several days.
 
 ### 3.2 Example of Fuzz Options
 
