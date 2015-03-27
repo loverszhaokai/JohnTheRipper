@@ -167,6 +167,11 @@ $ /path/to/app 7z_fmt --single=S1 --wordlist=password.lst
 
 ## 4. List of bugs found by Fuzz Options
 
+* --internal-encoding=CP437: asan error #1164 
+
+ https://github.com/magnumripper/JohnTheRipper/issues/1164
+
+
 
 
 
