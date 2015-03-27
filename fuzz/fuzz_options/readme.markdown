@@ -6,9 +6,11 @@ This is a simple project helping you to fuzz command options.
 
 ### Compile john
 
+```
 $ cd $JOHN_PATH/src
 $ export ASAN_OPTIONS='abort_on_error=1'
 $ AFL_USE_ASAN=1 AFL_HARDEN=1 ./configure CC=gcc-4.9 --enable-asan && make -sj8
+```
 
 ### Compile Fuzz Options
 
