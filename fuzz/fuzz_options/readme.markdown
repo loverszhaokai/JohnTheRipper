@@ -4,15 +4,24 @@ This is a simple project helping you to fuzz command options.
 
 ## Quick Start
 
-
-### Compile afl
-
-
 ### Compile john
 
+$ cd $JOHN_PATH/src
+$ export ASAN_OPTIONS='abort_on_error=1'
+$ AFL_USE_ASAN=1 AFL_HARDEN=1 ./configure CC=gcc-4.9 --enable-asan && make -sj8
 
-### Fuzz
+### Compile Fuzz Options
 
+$ cd $JOHN_PATH/fuzz/fuzz_options/sample
+$ gcc-4.9 ../src/combination.c ../src/fuzz_options.c -o fuzz_options
+
+### Fuzzing
+
+$ ./fuzz_options ../../../run/john input
+
+The command options which leads to crash will be written to ./crashes
+
+## Fuzz
 
 
 ## Input file
