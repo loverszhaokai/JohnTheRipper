@@ -165,7 +165,7 @@ $ /path/to/app 7z_fmt --single=S1 --wordlist=pwfile
 $ /path/to/app 7z_fmt --single=S1 --wordlist=password.lst
 ```
 
-## List of bugs found by Fuzz Options
+## 4. List of bugs found by Fuzz Options
 
 
 
