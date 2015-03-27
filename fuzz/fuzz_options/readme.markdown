@@ -24,11 +24,12 @@ $ gcc-4.9 ../src/combination.c ../src/fuzz_options.c -o fuzz_options
 ```shell
 $ ./fuzz_options
 
-Usage: ./fuzz_options  /path/to/app  /path/to/parameter_config_file
+Usage: ./fuzz_options  /path/to/app  /path/to/parameter_config_file [parameters-always-run]
 
-$ ./fuzz_options ../../../run/john parameter_config_file
+$ ./fuzz_options  ../../../run/john  parameter_config_file  --max-run-time=1
 ```
 
+The last parameters can have one to seven parameters which will always sent to target app.
 The command options which leads to crash will be written to **./crashes**
 
 ## 2. Parameter Config File
