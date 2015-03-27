@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AFL case_number="10000">
+
+<!-- Valid format -->
+<DataElement>
+  <string is_mutate="false">$7z$0$</string>
+  <string length="1" type="NUM">19</string>
+
+  <string is_mutate="false">$</string>
+  <string name="salt_length" length="1" type="NUM">0</string> 
+
+  <string is_mutate="false">$</string>
+  <string name="salt" length="[0,10000]" type="NUM">1122</string> 
+
+  <string is_mutate="false">$</string>
+  <string name="iv_length" length="1" type="NUM">8</string> 
+
+  <string is_mutate="false">$</string>
+  <string name="iv1" length="[1,100]" type="HEX_STR">d1f5022775941589</string> 
+  <string name="iv2" is_mutate="false" type="NUM">0000000000000000</string> 
+
+  <string is_mutate="false">$</string>
+  <string name="crc" length="[0,10000]" type="NUM">1412385885</string> 
+
+  <string is_mutate="false">$</string>
+  <string name="data_length" length="[0,10000]" type="NUM">112</string> 
+
+  <string is_mutate="false">$</string>
+  <string name="unpacksize" length="[0,10000]" type="NUM">112</string> 
+
+  <string is_mutate="false">$</string>
+  <string name="data" length="[0,10000]" type="HEX_STR">5e5b8b734adf52a64c541a5a5369023d7cccb78bd910c0092535dfb013a5df84ac692c5311d2e7bbdc580f5b867f7b5dd43830f7b4f37e41c7277e228fb92a6dd854a31646ad117654182253706dae0c069d3f4ce46121d52b6f20741a0bb39fc61113ce14d22f9184adafd6b5333fb1</string> 
+
+</DataElement>
+
+
+<!-- Invalid format -->
+<DataElement>
+  <string>$7z$0$</string>
+  <string length="1" type="NUM">19</string>
+
+  <string>$</string>
+  <string name="salt_length" length="1" type="NUM">0</string> 
+
+  <string>$</string>
+  <string name="salt" length="[0,10000]" type="NUM">1122</string> 
+
+  <string>$</string>
+  <string name="iv_length" length="1" type="NUM">8</string> 
+
+  <string>$</string>
+  <string name="iv1" length="[1,100]" type="HEX_STR">d1f5022775941589</string> 
+  <string name="iv2" is_mutate="false" type="NUM">0000000000000000</string> 
+
+  <string>$</string>
+  <string name="crc" length="[0,10000]" type="NUM">1412385885</string> 
+
+  <string>$</string>
+  <string name="data_length" length="[0,10000]" type="NUM">112</string> 
+
+  <string>$</string>
+  <string name="unpacksize" length="[0,10000]" type="NUM">112</string> 
+
+  <string>$</string>
+  <string name="data" length="[0,10000]" type="HEX_STR">5e5b8b734adf52a64c541a5a5369023d7cccb78bd910c0092535dfb013a5df84ac692c5311d2e7bbdc580f5b867f7b5dd43830f7b4f37e41c7277e228fb92a6dd854a31646ad117654182253706dae0c069d3f4ce46121d52b6f20741a0bb39fc61113ce14d22f9184adafd6b5333fb1</string> 
+
+</DataElement>
+
+
+
+</AFL>
+
