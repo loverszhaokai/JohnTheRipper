@@ -1,0 +1,20 @@
+start_time     : 1426415878
+last_update    : 1426439837
+fuzzer_pid     : 57087
+cycles_done    : 0
+execs_done     : 33451
+execs_per_sec  : 0.00
+paths_total    : 587
+paths_found    : 586
+paths_imported : 0
+max_depth      : 1
+cur_path       : 1
+pending_favs   : 1
+pending_total  : 587
+variable_paths : 1
+bitmap_cvg     : 0.00%
+unique_crashes : 0
+unique_hangs   : 6
+afl_banner     : john
+afl_version    : 1.55b
+command_line   : ../afl-fuzz -s -p -j -m none -t 1500+ -i test_cases -o out ../../run/john @@ --nolog --max-run-time=1
