@@ -84,3 +84,5 @@ afl-1.55b/as
 
 afl-1.55b/john_test/a.out
 afl-1.55b/john_test/out
+
+fuzz/fuzz_options/sample/fuzz_options
