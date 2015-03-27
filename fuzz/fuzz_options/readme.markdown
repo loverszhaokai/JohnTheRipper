@@ -37,11 +37,13 @@ The parameter config file likes the john.conf. The file contains parameter names
 values. Each parameter can have one or more values. You should write every parameter 
 that you want test to this file.
 
+```shell
 [parameter-name]
 value_1
 value_2
 value_3
 ...
+```
 
 ## 3. Mechanism
 
