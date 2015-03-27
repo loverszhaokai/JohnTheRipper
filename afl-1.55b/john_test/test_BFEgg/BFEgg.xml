@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AFL case_number="1000">
+
+<!-- Valid format -->
+<DataElement>
+  <string is_mutate="false">+</string>
+  <string length="12" type="HEX_STR">9F93o1OxwgK1</string>
+</DataElement>
+
+<!-- Valid format -->
+<DataElement>
+  <string is_mutate="false">+</string>
+  <string length="12" type="NUM">9F93o1OxwgK1</string>
+</DataElement>
+
+<!-- Valid format -->
+<DataElement>
+  <string is_mutate="false">+</string>
+  <string length="12" type="STR">9F93o1OxwgK1</string>
+</DataElement>
+
+<!-- Invalid format -->
+<DataElement>
+  <string is_mutate="false">+</string>
+  <string type="STR">9F93o1OxwgK1</string>
+</DataElement>
+
+</AFL>
+
