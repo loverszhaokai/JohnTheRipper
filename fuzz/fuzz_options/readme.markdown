@@ -167,12 +167,43 @@ $ /path/to/app 7z_fmt --single=S1 --wordlist=password.lst
 
 ## 4. List of bugs found by Fuzz Options
 
-* --internal-encoding=CP437: asan error #1164 
+* 4.1 External mode: asan error #1149
 
- https://github.com/magnumripper/JohnTheRipper/issues/1164
+https://github.com/magnumripper/JohnTheRipper/issues/1149
 
+* 4.2 Segfault when --field-separator-char=c #1150
 
+https://github.com/magnumripper/JohnTheRipper/issues/1150
 
+* 4.3 Stress-test: asan error #1151
 
+https://github.com/magnumripper/JohnTheRipper/issues/1151
 
+* 4.4 --list=format-methods: asan error #1153
+
+https://github.com/magnumripper/JohnTheRipper/issues/1153
+
+* 4.5 Segfault when --regen-lost-salts=1 #1154
+
+https://github.com/magnumripper/JohnTheRipper/issues/1154
+
+* 4.6 --input-encoding problem #1157
+
+https://github.com/magnumripper/JohnTheRipper/issues/1157
+
+* 4.7 --input-encoding: asan error #1158
+
+https://github.com/magnumripper/JohnTheRipper/issues/1158
+
+* 4.8 --prince-loopback: asan error #1162
+
+https://github.com/magnumripper/JohnTheRipper/issues/1162
+
+* 4.9 --prince-loopback and --min-length: asan error #1163
+
+https://github.com/magnumripper/JohnTheRipper/issues/1163
+
+* 4.10 --internal-encoding=CP437: asan error #1164
+
+https://github.com/magnumripper/JohnTheRipper/issues/1164
 
