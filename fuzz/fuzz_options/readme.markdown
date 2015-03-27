@@ -33,14 +33,63 @@ The command options which leads to crash will be written to **./crashes**
 
 ## 2. Parameter Config File
 
+The parameter config file likes the john.conf. The file contains parameter names and 
+values. Each parameter can have one or more values. You should write every parameter 
+that you want test to this file.
 
+[parameter-name]
+value_1
+value_2
+value_3
+...
 
 ## 3. Mechanism
 
-When you fuzz options, you should run the command:
 
-$ ./fuzz_options  /path/to/app  /path/to/parameter_config_file
+### 3.1 Mechanism of Fuzz Options
 
+The explaination maybe hard to understand, you can read the next section: 3.2 which is 
+easy to understand.
+
+The mechanism is very simple, just try every combination of command options. Fuzz 
+Options will try to run the target app with the combination of parameters. 
+
+The number of all parameters is N. Firstly, it will run the target app with none 
+parameters. And then it will run the target app with one, two, three, ..., m ..., 
+N parameters. For m parameters, Fuzz Options will brute-force all the combinations 
+of m parameters. p stands for parameter, p[1] stands for the first parameter, and 
+p[N] is the last parameters. There are C(N, m) iterations for m parameters combination:
+
+```C
+p[1]      p[2]      p[3]      ...   p[m]   
+p[2]      p[3]      p[4]      ...   p[m+1]   
+...       ...       ...       ...   ...
+p[i]      p[i+1]    p[i+2]    ...   p[i+m-1]
+...       ...       ...       ...   ...
+p[N-m+1]  p[N-m+2]  p[N-m+3]  ...   p[N]
+```
+
+The number of values for p[i] is p[i].size; For iteration: p[i] to p[i+m-1], there 
+will be p[i].size * p[i+1].size*...*p[i+m-1].size cases. Such as below:
+
+```C
+p[i][1]          p[i+1][1]            p[i+2][1]            ...  p[i+m-2][1]              p[i+m-1][1]
+p[i][1]          p[i+1][1]            p[i+2][1]            ...  p[i+m-2][1]              p[i+m-1][2]
+p[i][1]          p[i+1][1]            p[i+2][1]            ...  p[i+m-2][1]              p[i+m-1][3]
+...              ...                  ...                  ...  ...                      ...
+p[i][1]          p[i+1][1]            p[i+2][1]            ...  p[i+m-2][1]              p[i+m-1][p[i+m-1].size]
+
+p[i][1]          p[i+1][1]            p[i+2][1]            ...  p[i+m-2][2]              p[i+m-1][1]
+p[i][1]          p[i+1][1]            p[i+2][1]            ...  p[i+m-2][2]              p[i+m-1][2]
+p[i][1]          p[i+1][1]            p[i+2][1]            ...  p[i+m-2][2]              p[i+m-1][3]
+...              ...                  ...                  ...  ...                      ...
+p[i][1]          p[i+1][1]            p[i+2][1]            ...  p[i+m-2][2]              p[i+m-1][p[i+m-1].size]
+...              ...                  ...                  ...  ...                      ...
+...              ...                  ...                  ...  ...                      ...
+p[i][p[i].size]  p[i+1][p[i+1].size]  p[i+2][p[i+2].size]  ...  p[i+m-2][p[i+m-2].size]  p[i+m-1][p[i+m-1].size]
+```
+
+### 3.2 Example of Fuzz Options
 
 For example, the content of parameter config file is below:
 
