@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AFL case_number="10000">
+
+<!-- Valid format -->
+<DataElement>
+  <string is_mutate="false">$K4$</string>
+  <string length="16" type="HEX_STR">e35e9294ecef926d</string>
+  <string is_mutate="false">,</string>
+  <string type="STR">0123</string> 
+</DataElement>
+
+
+<!-- Invalid format -->
+<DataElement>
+  <string>$K4$</string>
+  <string>e35e9294ecef926d</string>
+  <string>,</string>
+  <string>0123</string> 
+</DataElement>
+
+
+</AFL>
+
