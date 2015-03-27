@@ -11,12 +11,16 @@
 
 // FUZZ OPTIONS
 
-struct Param *params_arr[MAX_PARAM_NUMBER]; // Array of pointers to struct Param*
-static struct ParamValue **tail_param_value; // Tail of ParameterValue List
+struct Param *params_arr[MAX_PARAM_NUMBER];      // Array of pointers to struct Param*
+static struct ParamValue **tail_param_value;     // Tail of ParameterValue List
 static int param_id = 1;
 static int param_value_id = 1;
+
 char *params_passed_to_target[MAX_PARAM_NUMBER]; // The parameter list passed to the target
-char single_param[MAX_SINGLE_PARAM_SIZE]; // Used to record temporary parameter
+unsigned int params_passed_to_target_index;      // The index of array params_passed_to_target
+
+char *params_always_run[MAX_PARAM_NUMBER];       // The parameters always sent to target app
+char single_param[MAX_SINGLE_PARAM_SIZE];        // Used to record temporary parameter
 
 FILE *fuzz_result;
 
@@ -25,7 +29,7 @@ extern unsigned int element_id[MAX_PARAM_NUMBER];
 
 static void usage()
 {
-	printf("Usage: ./fuzz_options  /path/to/app  /path/to/parameter_config_file\n");
+	printf("Usage: ./fuzz_options  /path/to/app  /path/to/parameter_config_file [parameters-always-run]\n");
 }
 
 static int add_parameter_value(char *param_value)
@@ -157,11 +161,11 @@ static int get_cnt_parameter(const int current_size)
 
 		// printf("single_param='%s'\n", single_param);
 
-		free(params_passed_to_target[i + 2]);
-		params_passed_to_target[i + 2] = strdup(single_param);
+		free(params_passed_to_target[i + params_passed_to_target_index]);
+		params_passed_to_target[i + params_passed_to_target_index] = strdup(single_param);
 	}
 
-	params_passed_to_target[i + 2] = NULL;
+	params_passed_to_target[i + params_passed_to_target_index] = NULL;
 
 	return 0;
 }
@@ -389,22 +393,33 @@ int main(int argc, char **argv)
 {
 	printf("\n\t\tFuzz Options\n\n");
 
-	if (3 != argc) {
+	if (3 > argc) {
 		usage();
 		return -1;
 	}
 	params_passed_to_target[0] = argv[1];
-	params_passed_to_target[1] = "--max-run-time=1";
+	params_passed_to_target_index = 1;
 
+	if (argc > 10) {
+
+		printf("The number of parameters:%d is bigger than 10\n", argc);
+		return -1;
+	}
 
 	if (0 != read_parameter_config(argv[2])) {
 		printf("failed to read_parameter_config(''%s)\n", argv[2]);
 		return -1;
 	}
 
-	if (MAX_PARAM_NUMBER < param_id) {
+	if (MAX_PARAM_NUMBER < param_id + 10) {
 		printf("the number of parameters:%d is too large\n", param_id - 1);
 		return -1;
+	}
+
+	// Set parameters always sent to target app
+	int i;
+	for (i = 4; i <= argc; ++i) {
+		params_passed_to_target[params_passed_to_target_index++] = argv[i - 1];
 	}
 
 	element_size = param_id - 1;
