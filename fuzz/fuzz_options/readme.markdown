@@ -187,23 +187,27 @@ https://github.com/magnumripper/JohnTheRipper/issues/1153
 
 https://github.com/magnumripper/JohnTheRipper/issues/1154
 
-* 4.6 --input-encoding problem #1157
+* 4.6 fix segfault: --markov::default: #1156
+
+https://github.com/magnumripper/JohnTheRipper/pull/1156
+
+* 4.7 --input-encoding problem #1157
 
 https://github.com/magnumripper/JohnTheRipper/issues/1157
 
-* 4.7 --input-encoding: asan error #1158
+* 4.8 --input-encoding: asan error #1158
 
 https://github.com/magnumripper/JohnTheRipper/issues/1158
 
-* 4.8 --prince-loopback: asan error #1162
+* 4.9 --prince-loopback: asan error #1162
 
 https://github.com/magnumripper/JohnTheRipper/issues/1162
 
-* 4.9 --prince-loopback and --min-length: asan error #1163
+* 4.10 --prince-loopback and --min-length: asan error #1163
 
 https://github.com/magnumripper/JohnTheRipper/issues/1163
 
-* 4.10 --internal-encoding=CP437: asan error #1164
+* 4.11 --internal-encoding=CP437: asan error #1164
 
 https://github.com/magnumripper/JohnTheRipper/issues/1164
 
