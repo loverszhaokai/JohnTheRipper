@@ -226,8 +226,11 @@ if ($tree) {
 	} else {
 		if (top_of_kernel_tree('.')) {
 			$root = '.';
-		} elsif ($0 =~ m@(.*)/scripts/[^/]*$@ &&
+		} elsif ($0 =~ m@(.*)/run/[^/]*$@ &&
 						top_of_kernel_tree($1)) {
+
+		    print "\n\$1=$1\n\n";
+
 			$root = $1;
 		}
 	}
@@ -710,9 +713,7 @@ sub top_of_kernel_tree {
 	my ($root) = @_;
 
 	my @tree_check = (
-		"COPYING", "CREDITS", "Kbuild", "MAINTAINERS", "Makefile",
-		"README", "Documentation", "arch", "include", "drivers",
-		"fs", "init", "ipc", "kernel", "lib", "scripts",
+		"README.md", "doc", "run", "src",
 	);
 
 	foreach my $check (@tree_check) {
