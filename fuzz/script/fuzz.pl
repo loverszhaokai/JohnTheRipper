@@ -8,6 +8,7 @@ $factor = 4;
 $workdir = '/dev/shm/fuzz';
 $pwfile = $workdir . '/pw';
 $session = $workdir . '/s';
+$pot = $workdir . '/pot';
 
 die unless (mkdir($workdir, 0700) || $!{EEXIST});
 
@@ -22,9 +23,10 @@ sub try
 	print PW "$c\n";
 	close(PW);
 
-	open(JOHN, "| ./john --nolog --encoding=raw --stdin --session=$session --format=$f $pwfile") || die;
-	print JOHN "wrong password 1\n";
-	print JOHN "wrong password 2\n";
+	open(JOHN, "| ./john --skip-self-tests --nolog --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
+	print JOHN "wrong password " x10 . "one\n";
+	print JOHN "two wrongs\n";
+	print JOHN "wrong password three\n";
 	close(JOHN);
 
 	die if ($? == 256 || $? == 2 || $? == 15); # exit(1) or INT or TERM
@@ -41,7 +43,7 @@ sub try
 	}
 }
 
-open(TESTS, './john --list=format-tests --format=cpu |') || die;
+open(TESTS, './john --list=format-tests --format=cpu | shuf |') || die;
 while (<TESTS>) {
 	($f, $c) = /^([\w\d-]+)\t[^\t]+\t([^\t]+)\t/;
 	if ($f && $c) {
@@ -71,6 +73,7 @@ $from = int(($#fs + 1) * $cpu / $cpus);
 $to = int(($#fs + 1) * ($cpu + 1) / $cpus) - 1;
 
 $session .= "-$cpu";
+$pot .= "-$cpu";
 $pwfile .= "-$cpu";
 
 $seq = 0;
