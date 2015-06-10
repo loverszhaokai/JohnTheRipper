@@ -28,7 +28,7 @@ CPPFLAGS = -E
 SORT = sort
 STRIP = strip
 MAKE_BEST_JTR = $(MAKE) -j1 -f Makefile.legacy
-MAKE_ORIG = +$(MAKE) -f Makefile.legacy -j$(J)
+MAKE_ORIG = $(MAKE) -f Makefile.legacy -j$(J)
 
 ## Uncomment the line below for MPI (can be used together with OMP as well)
 #CC = mpicc -DHAVE_MPI
@@ -111,38 +111,37 @@ JOHN_OBJS = \
 	jumbo.o john-mpi.o \
 	DES_fmt.o DES_std.o DES_bs.o DES_bs_b.o \
 	BSDI_fmt.o \
-	MD5_fmt.o MD5_std.o \
-	BF_fmt.o BF_std.o \
+	MD5_fmt.o MD5_std.o cryptmd5_common.o \
+	BF_fmt.o BF_std.o BF_common.o \
 	scrypt_fmt.o \
 	escrypt/crypto_scrypt-best.o escrypt/crypto_scrypt-common.o \
 	escrypt/sha256.o \
 	AFS_fmt.o \
 	LM_fmt.o \
 	trip_fmt.o \
+	NT_fmt.o \
 	timer.o \
-	md5_go.o \
 	md5.o \
 	rc4.o \
 	hmacmd5.o \
 	base64.o base64_convert.o \
 	md4.o sha2.o \
 	dynamic_fmt.o dynamic_parser.o dynamic_preloads.o dynamic_utils.o dynamic_big_crypt.o \
+	ripemd.o tiger.o \
 	ssh2john.o \
 	pfx2john.o \
 	unrarcmd.o unrarfilter.o unrarhlp.o unrar.o unrarppm.o unrarvm.o \
 	rar2john.o \
-	zip2john.o gladman_hmac.o gladman_pwd2key.o \
+	zip2john.o pkzip.o gladman_hmac.o gladman_pwd2key.o \
 	racf2john.o \
 	keychain2john.o \
 	kwallet2john.o \
 	pwsafe2john.o \
 	dmg2john.o \
 	keepass2john.o \
-	keyring2john.o keystore2john.o \
-	truecrypt_volume2john.o \
+	keyring2john.o \
 	hccap2john.o \
 	$(PLUGFORMATS_OBJS) \
-	plugin.o \
 	dyna_salt.o dummy.o \
 	gost.o \
 	common-gpu.o \
@@ -155,6 +154,7 @@ JOHN_OBJS = \
 	listconf.o \
 	fake_salts.o \
 	win32_memmap.o \
+	uaf_encode.o \
 	unicode.o \
 	unshadow.o \
 	unafs.o \
@@ -180,10 +180,10 @@ BENCH_DES_BS_OBJS_DEPEND = \
 	DES_bs_b.o
 
 BENCH_MD5_OBJS_DEPEND = \
-	MD5_fmt.o MD5_std.o
+	MD5_fmt.o MD5_std.o cryptmd5_common.o
 
 BENCH_BF_OBJS_DEPEND = \
-	BF_fmt.o BF_std.o
+	BF_fmt.o BF_std.o BF_common.o
 
 BENCH_OBJS = \
     $(MPIOBJ) \
@@ -215,7 +215,7 @@ PROJ = ../run/john ../run/unshadow ../run/unafs ../run/unique ../run/undrop \
 	../run/pwsafe2john ../run/raw2dyna ../run/keepass2john ../run/pfx2john \
 	../run/keychain2john ../run/keyring2john ../run/kwallet2john \
 	../run/dmg2john ../run/putty2john john.local.conf ../run/uaf2john \
-	../run/truecrypt_volume2john ../run/keystore2john ../run/wpapcap2john \
+	../run/wpapcap2john \
 	../run/gpg2john ../run/luks2john ../run/cprepair ../run/base64conv
 PROJ_DOS = ../run/john.bin ../run/john.com \
 	../run/unshadow.com ../run/unafs.com ../run/unique.com \
@@ -2104,10 +2104,6 @@ $(SUBDIRS):
 	$(RM) ../run/base64conv
 	ln -s john ../run/base64conv
 
-../run/truecrypt_volume2john: ../run/john
-	$(RM) ../run/truecrypt_volume2john
-	ln -s john ../run/truecrypt_volume2john
-
 ../run/unique: ../run/john
 	$(RM) ../run/unique
 	ln -s john ../run/unique
@@ -2307,18 +2303,14 @@ john.com: john.asm
 ../run/vncpcap2john: vncpcap2john.o
 	$(CC) -Wall vncpcap2john.o memdbg.o -lpcap $(OMPFLAGS) -o ../run/vncpcap2john
 
-../run/uaf2john: uaf2john.o uaf_encode_plug.o
-	$(LD) $(LDFLAGS) uaf2john.o uaf_encode_plug.o memdbg.o $(OMPFLAGS) -o ../run/uaf2john
+../run/uaf2john: uaf2john.o uaf_encode.o
+	$(LD) $(LDFLAGS) uaf2john.o uaf_encode.o memdbg.o $(OMPFLAGS) -o ../run/uaf2john
 
 ../run/wpapcap2john: wpapcap2john.o
 	$(LD) $(LDFLAGS) wpapcap2john.o memdbg.o $(OMPFLAGS) -o ../run/wpapcap2john
 
 ../run/luks2john: luks2john.o
 	$(LD) $(LDFLAGS) luks2john.o -s -lcrypto -lssl memdbg.o jumbo.o $(OMPFLAGS) -o ../run/luks2john
-
-../run/keystore2john: ../run/john
-	$(RM) ../run/keystore2john
-	ln -s john ../run/keystore2john
 
 ../run/cprepair: cprepair.c unicode.c unicode.h options.h misc.h misc.c \
 	memdbg.h memdbg.c

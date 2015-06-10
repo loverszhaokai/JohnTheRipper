@@ -57,10 +57,22 @@
  *
  */
 
+#if AC_BUILT
+#include "autoconfig.h"
+#endif
+#ifndef DYNAMIC_DISABLED
+
 #include <string.h>
 #include <ctype.h>
 
 #include "arch.h"
+
+#if !FAST_FORMATS_OMP
+#ifdef _OPENMP
+# define FORCE_THREAD_MD5_body
+#endif
+#undef _OPENMP
+#endif
 
 #include "misc.h"
 #include "common.h"
@@ -1057,3 +1069,5 @@ int dynamic_LOAD_PARSER_FUNCTIONS(int which, struct fmt_main *pFmt)
 
 	return ret;
 }
+
+#endif /* DYNAMIC_DISABLED */

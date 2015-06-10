@@ -47,7 +47,6 @@
 #include "params.h"
 #include <openssl/bio.h>
 #include <openssl/evp.h>
-#include "memdbg.h"
 
 #define LUKS_MAGIC_L        6
 #define LUKS_CIPHERNAME_L   32
@@ -113,6 +112,11 @@ static int hash_plugin_parse_hash(char *filename)
 	unsigned int bestiter = 0xFFFFFFFF;
 
 	myfile = jtr_fopen(filename, "rb");
+
+	if (!myfile) {
+		fprintf(stderr, "\n%s : %s!\n", filename, strerror(errno));
+		return -1;
+	}
 
 	if (fread(&myphdr, sizeof(struct luks_phdr), 1, myfile) < 1) {
 		fprintf(stderr, "%s : file opening problem!\n", filename);

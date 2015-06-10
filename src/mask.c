@@ -1220,6 +1220,8 @@ static char* generate_template_key(char *mask, const char *key, int key_len,
 		}
 	}
 
+	template_key[k] = '\0';
+
 	if (!mask_has_8bit && !(options.flags & FLG_MASK_STACKED)) {
 		for (i = 0; i < strlen(template_key); i++)
 			if (template_key[i] & 0x80) {
@@ -1240,8 +1242,6 @@ static char* generate_template_key(char *mask, const char *key, int key_len,
 #ifdef MASK_DEBUG
 	fprintf(stderr, "Mask '%s' has%s 8-bit\n", template_key, mask_has_8bit ? "" : " no");
 #endif
-
-	template_key[k] = '\0';
 
 	return template_key;
 }
@@ -1476,7 +1476,7 @@ static double get_progress(void)
 	if (cand_length)
 		try -= cand_length;
 
-	return 100.0 * try / (double)(mask_tot_cand / num_nodes);
+	return 100.0 * try / (double)((mask_tot_cand * mask_int_cand.num_int_cand) / num_nodes);
 }
 
 void mask_save_state(FILE *file)

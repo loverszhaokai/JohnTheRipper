@@ -36,7 +36,9 @@ static int omp_t = 1;
 // 4k  - 670k
 // 8k  - 680k
 // 16k - 650k
+#ifndef OMP_SCALE
 #define OMP_SCALE  (1024)
+#endif
 #endif
 #include "memdbg.h"
 
@@ -159,7 +161,7 @@ static int cmp_all(void *binary, int count)
 #ifdef _OPENMP
 	for (; index < count; index++)
 #endif
-		if (!memcmp(binary, crypt_out[index], BINARY_SIZE))
+		if (!memcmp(binary, crypt_out[index], ARCH_SIZE))
 			return 1;
 	return 0;
 }

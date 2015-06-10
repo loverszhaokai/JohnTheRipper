@@ -462,6 +462,7 @@ static void *get_salt(char *ciphertext)
 	int i;
 	static struct custom_salt cs;
 
+	memset(&cs, 0, sizeof(cs));
 	ctcopy += 8;
 	p = strtokm(ctcopy, "$");
 	cs.etype = atoi(p);
@@ -806,7 +807,7 @@ static int cmp_all(void *binary, int count)
 {
 	int index = 0;
 	for (; index < count; index++)
-		if (!memcmp(binary, crypt_out[index], BINARY_SIZE))
+		if (!memcmp(binary, crypt_out[index], ARCH_SIZE))
 			return 1;
 	return 0;
 }

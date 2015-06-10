@@ -29,6 +29,7 @@
 #if AC_BUILT
 #include "autoconfig.h"
 #else
+#include <sys/mman.h>
 #define HAVE_LIBGMP 1
 #define _GNU_SOURCE
 #define _FILE_OFFSET_BITS 64
@@ -67,15 +68,16 @@
 #endif
 #include <ctype.h>
 #include <signal.h>
+
 #if _MSC_VER || __MINGW32__ || __MINGW64__ || __CYGWIN__ || HAVE_WINDOWS_H
 #include "win32_memmap.h"
+#undef MEM_FREE
 #ifndef __CYGWIN__
 #include "mmap-windows.c"
-#elif defined HAVE_MMAP
-#include <sys/mman.h>
-#endif
-#undef MEM_FREE
-#elif defined(HAVE_MMAP)
+#endif /* __CYGWIN */
+#endif /* _MSC_VER ... */
+
+#if defined(HAVE_MMAP)
 #include <sys/mman.h>
 #endif
 
@@ -319,7 +321,7 @@ static const char *USAGE_BIG[] =
   "       --elem-cnt-max=NUM    Maximum number of elements per chain",
   "       --wl-dist-len         Calculate output length distribution from wordlist",
   "       --wl-max=NUM          Load only NUM words from input wordlist or use 0 to disable",
-  "  -c,  --dupe-check-disable  Disable dupes check for faster inital load",
+  "  -c,  --dupe-check-disable  Disable dupes check for faster initial load",
   "       --save-pos-disable    Save the position for later resume with -s",
   "",
   "* Resources:",
@@ -880,7 +882,8 @@ static double get_progress(void)
   mpf_init(fpos); mpf_init(perc);
 
   mpf_set_z(fpos, rec_pos);
-  mpf_div(perc, fpos, count);
+  if (0 != mpf_sgn(count))
+    mpf_div(perc, fpos, count);
   progress = 100.0 * mpf_get_d(perc);
 
   mpf_clear(fpos); mpf_clear(perc);
@@ -2353,8 +2356,10 @@ next_rule:
 #ifndef JTR_MODE
   return 0;
 #else
+#if defined(HAVE_MMAP)
   if (mem_map)
     munmap(mem_map, file_len);
+#endif
 
   crk_done();
   rec_done(event_abort || (status.pass && db->salts));

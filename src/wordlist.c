@@ -10,16 +10,15 @@
  * There's ABSOLUTELY NO WARRANTY, express or implied.
  */
 
-/* NOTE, _POSIX_SOURCE fuk's up solaris 32 bit 64 bit processing!!! */
-#ifndef sparc
-#define _POSIX_SOURCE /* for fileno(3) */
-#endif
-
 #include <stdio.h>
 #include <sys/stat.h>
 
 #if AC_BUILT
 #include "autoconfig.h"
+#else
+#ifndef sparc
+#define _POSIX_SOURCE /* for fileno(3) */
+#endif
 #endif
 
 #include "os.h"
@@ -46,20 +45,18 @@
 
 #if _MSC_VER || __MINGW32__ || __MINGW64__ || __CYGWIN__ || HAVE_WINDOWS_H
 #include "win32_memmap.h"
+#undef MEM_FREE
 #ifndef __CYGWIN__
 #include "mmap-windows.c"
-#elif defined HAVE_MMAP
+#endif /* __CYGWIN */
+#endif /* _MSC_VER ... */
+
+#if defined(HAVE_MMAP)
 #include <sys/mman.h>
 #endif
-#undef MEM_FREE
-#elif defined(HAVE_MMAP)
-#include <sys/mman.h>
-#endif
+
 #include <errno.h>
 
-#ifdef __SSE2__
-#include <emmintrin.h>
-#endif
 #include "arch.h"
 #include "jumbo.h"
 #include "misc.h"
@@ -82,10 +79,17 @@
 #include "unicode.h"
 #include "regex.h"
 #include "mask.h"
+#include "pseudo_intrinsics.h"
 #include "memdbg.h"
 
-#define _STR_VALUE(arg)			#arg
-#define STR_MACRO(n)			_STR_VALUE(n)
+#define _STR_VALUE(arg)         #arg
+#define STR_MACRO(n)            _STR_VALUE(n)
+
+#if defined(SIMD_COEF_32)
+#define VSCANSZ                 (SIMD_COEF_32 * 4)
+#else
+#define VSCANSZ                 0
+#endif
 
 static int dist_rules;
 
@@ -132,22 +136,24 @@ static MAYBE_INLINE char *mgetl(char *res)
 {
 	char *pos = res;
 
-#if defined(__SSE2__) && !defined(__APPLE__) && !defined(_MSC_VER)
+#if defined(SIMD_COEF_32) && !defined(_MSC_VER) && \
+	!((__AVX512F__ && !__AVX512BW__) || __MIC__)
 
-	/* 16 chars at a time with known remainder. */
-	__m128i cx16 = _mm_set1_epi8('\n');
+	/* 16/32/64 chars at a time with known remainder. */
+	const vtype vnl = vset1_epi8('\n');
 
 	if (map_pos >= map_end)
 		return NULL;
 
-	while (map_pos < map_scan_end && pos < res + LINE_BUFFER_SIZE - 17) {
-		__m128i x = _mm_loadu_si128((__m128i const *)map_pos);
-		unsigned int v = _mm_movemask_epi8(_mm_cmpeq_epi8(cx16, x));
+	while (map_pos < map_scan_end &&
+	       pos < res + LINE_BUFFER_SIZE - (VSCANSZ + 1)) {
+		vtype x = vloadu((vtype const *)map_pos);
+		uint64_t v = vcmpeq_epi8_mask(vnl, x);
 
-		_mm_storeu_si128((__m128i*)pos, x);
+		vstoreu((vtype*)pos, x);
 		if (v) {
 #ifdef __GNUC__
-			unsigned int r = __builtin_ctz(v);
+			unsigned int r = __builtin_ctzl(v);
 #else
 			unsigned int r = ffs(v) - 1;
 #endif
@@ -155,8 +161,8 @@ static MAYBE_INLINE char *mgetl(char *res)
 			pos += r;
 			break;
 		}
-		map_pos += 16;
-		pos += 16;
+		map_pos += VSCANSZ;
+		pos += VSCANSZ;
 	}
 
 	if (*map_pos != '\n')
@@ -609,7 +615,7 @@ void do_wordlist_crack(struct db_main *db, char *name, int rules)
 		} else {
 			map_pos = mem_map;
 			map_end = mem_map + file_len;
-			map_scan_end = map_end - 16;
+			map_scan_end = map_end - VSCANSZ;
 		}
 #endif
 
@@ -1306,6 +1312,8 @@ next_rule:
 	if (name) {
 		if (!event_abort)
 			progress = 100;
+		else
+			progress = get_progress();
 
 		MEM_FREE(words);
 #ifdef HAVE_MMAP

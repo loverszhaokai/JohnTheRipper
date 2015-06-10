@@ -18,12 +18,6 @@
  *
  */
 
-#if FMT_EXTERNS_H
-extern struct fmt_main fmt_NT;
-#elif FMT_REGISTERS_H
-john_register_one(&fmt_NT);
-#else
-
 #include <string.h>
 #include "arch.h"
 #include "misc.h"
@@ -46,7 +40,7 @@ john_register_one(&fmt_NT);
 #define SQRT_3 0x6ed9eba1
 
 
-#define FORMAT_LABEL			"NT"
+#define FORMAT_LABEL			"NT-old"
 #define FORMAT_NAME			""
 
 #define BENCHMARK_COMMENT		""
@@ -1076,5 +1070,3 @@ struct fmt_main fmt_NT = {
 		cmp_exact
 	}
 };
-
-#endif /* plugin stanza */

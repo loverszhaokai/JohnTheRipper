@@ -14,6 +14,9 @@
  *
  */
 
+#include "arch.h"
+#if HAVE_LIBZ
+
 #if FMT_EXTERNS_H
 extern struct fmt_main fmt_pkzip;
 #elif FMT_REGISTERS_H
@@ -21,15 +24,14 @@ john_register_one(&fmt_pkzip);
 #else
 
 #include <string.h>
+#include <zlib.h>
 
 #include "common.h"
-#include "arch.h"
 #include "misc.h"
 #include "formats.h"
 #define USE_PKZIP_MAGIC 1
 #include "pkzip.h"
 
-#include <zlib.h>
 #include "pkzip_inffixed.h"  // This file is a data file, taken from zlib
 #include "loader.h"
 
@@ -55,7 +57,9 @@ john_register_one(&fmt_pkzip);
 
 #define MIN_KEYS_PER_CRYPT		1
 #define MAX_KEYS_PER_CRYPT		64
+#ifndef OMP_SCALE
 #define OMP_SCALE			64
+#endif
 
 //#define ZIP_DEBUG 1
 //#define ZIP_DEBUG 2
@@ -384,7 +388,7 @@ static void init(struct fmt_main *self)
 	 */
 #ifdef PKZIP_USE_MULT_TABLE
 	for (n = 0; n < 16384; n++)
-		mult_tab[n] = ((n*4+3) * (n*4+2) >> 8) & 0xff;
+		mult_tab[n] = (((unsigned)(n*4+3) * (n*4+2)) >> 8) & 0xff;
 #endif
 
 #if USE_PKZIP_MAGIC
@@ -658,13 +662,15 @@ static void *get_salt(char *ciphertext)
 
 	psalt = mem_calloc(1, sizeof(PKZ_SALT) + ex_len[0]+ex_len[1]+ex_len[2]+2);
 	memcpy(psalt, salt, sizeof(*salt));
-	MEM_FREE(salt);
 	memcpy(psalt->zip_data, H[0], ex_len[0]);
 	MEM_FREE(H[0]);
-	memcpy(psalt->zip_data+ex_len[0]+1, H[1], ex_len[1]);
+	if(salt->cnt > 1)
+		memcpy(psalt->zip_data+ex_len[0]+1, H[1], ex_len[1]);
 	MEM_FREE(H[1]);
-	memcpy(psalt->zip_data+ex_len[0]+ex_len[1]+2, H[2], ex_len[2]);
+	if(salt->cnt > 2)
+		memcpy(psalt->zip_data+ex_len[0]+ex_len[1]+2, H[2], ex_len[2]);
 	MEM_FREE(H[2]);
+	MEM_FREE(salt);
 
 	psalt->dsalt.salt_alloc_needs_free = 1;  // we used mem_calloc, so JtR CAN free our pointer when done with them.
 	// NOTE, we need some way to close the BIO and EVP crap!!
@@ -1699,3 +1705,4 @@ struct fmt_main fmt_pkzip = {
 };
 
 #endif /* plugin stanza */
+#endif /* HAVE_LIBZ */

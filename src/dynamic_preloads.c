@@ -25,7 +25,18 @@
 
 #include <string.h>
 
+#if AC_BUILT
+#include "autoconfig.h"
+#endif
+
 #include "arch.h"
+
+#if !FAST_FORMATS_OMP
+#ifdef _OPENMP
+#  define FORCE_THREAD_MD5_body
+#endif
+#undef _OPENMP
+#endif
 
 #include "misc.h"
 #include "common.h"
@@ -34,6 +45,8 @@
 #include "dynamic.h"
 #include "config.h"
 #include "memdbg.h"
+
+#ifndef DYNAMIC_DISABLED
 
 // This set of defines will turn on testing of the MAX_LENGTH hashes. Some of them can cause changes in
 // the self test speeds. Thus, we can turn them on, to make sure that the formats ARE handling max length
@@ -46,11 +59,6 @@
 #define MTL(a,b,c) a,b,
 #else
 #define MTL(a,b,c)
-#endif
-
-#ifdef MD5_SSE_PARA
-#undef SIMD_COEF_32
-#define SIMD_COEF_32 4
 #endif
 
 //
@@ -3531,3 +3539,5 @@ int dynamic_IS_VALID(int i, int force)
 		return 0;
 	return 1;
 }
+
+#endif /* DYNAMIC_DISABLED */

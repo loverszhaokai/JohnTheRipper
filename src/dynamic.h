@@ -24,11 +24,15 @@
 #if !defined (__DYNAMIC___H)
 #define __DYNAMIC___H
 
+#include "arch.h"
+#ifndef DYNAMIC_DISABLED
+
+#include "sse-intrinsics.h"
 #include <openssl/opensslv.h>
 
 #ifdef _OPENMP
-#define DYNA_OMP_PARAMS int first, int last, int tid
-#define DYNA_OMP_PARAMSm int first, int last, int tid,
+#define DYNA_OMP_PARAMS unsigned int first, unsigned int last, unsigned int tid
+#define DYNA_OMP_PARAMSm unsigned int first, unsigned int last, unsigned int tid,
 #define DYNA_OMP_PARAMSd first, last, tid
 #define DYNA_OMP_PARAMSdm first, last, tid,
 #else
@@ -144,6 +148,9 @@ typedef struct DYNAMIC_Setup_t
 	int MaxInputLenX86;		// if zero, then use PW len set to 110-abs(SaltLen) (or 110-abs(SaltLenX86), if it is not 0)
 	int SaltLenX86;			// if zero, then use salt len of SSE
 } DYNAMIC_Setup;
+
+/* See dynamic_fmt.c for description */
+extern int dynamic_allow_rawhash_fixup;
 
 int dynamic_SETUP(DYNAMIC_Setup *, struct fmt_main *pFmt);
 int dynamic_IS_VALID(int i, int force);
@@ -558,5 +565,7 @@ extern void DynamicFunc__MD4_crypt_input1_overwrite_input1_base16(DYNA_OMP_PARAM
 extern void DynamicFunc__MD4_crypt_input2_overwrite_input2_base16(DYNA_OMP_PARAMS);
 extern void DynamicFunc__MD4_crypt_input1_overwrite_input2_base16(DYNA_OMP_PARAMS);
 extern void DynamicFunc__MD4_crypt_input2_overwrite_input1_base16(DYNA_OMP_PARAMS);
+
+#endif /* DYNAMIC_DISABLED */
 
 #endif // __DYNAMIC___H

@@ -48,7 +48,9 @@ john_register_one(&fmt_sevenzip);
 #define SALT_ALIGN		4
 #define MIN_KEYS_PER_CRYPT	1
 #define MAX_KEYS_PER_CRYPT	1
+#ifndef OMP_SCALE
 #define OMP_SCALE               1 // tuned on core i7
+#endif
 
 #define BIG_ENOUGH 		(8192 * 32)
 
@@ -224,7 +226,7 @@ static int validFolder(unsigned char *data)
 	return 0;
 }
 
-static int sevenzip_decrypt(unsigned char *derived_key, unsigned char *data)
+static int sevenzip_decrypt(unsigned char *derived_key)
 {
 #ifdef _MSC_VER
 	unsigned char *out;
@@ -307,9 +309,7 @@ static int sevenzip_decrypt(unsigned char *derived_key, unsigned char *data)
 	return -1;
 }
 
-
-
-void sevenzip_kdf(UTF8 *password, unsigned char *master)
+static void sevenzip_kdf(UTF8 *password, unsigned char *master)
 {
 	int len;
 	long long rounds = (long long) 1 << cur_salt->NumCyclesPower;
@@ -360,7 +360,7 @@ static int crypt_all(int *pcount, struct db_salt *salt)
 		sevenzip_kdf((unsigned char*)saved_key[index], master);
 
 		/* do decryption and checks */
-		if(sevenzip_decrypt(master, cur_salt->data) == 0)
+		if(sevenzip_decrypt(master) == 0)
 			cracked[index] = 1;
 		else
 			cracked[index] = 0;

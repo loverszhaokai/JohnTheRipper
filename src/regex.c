@@ -49,10 +49,10 @@ static void rexgen_setlocale() {
 		setlocale(LC_CTYPE, sysLocale);
 	}
 	if ((sysLocale = getenv("LC_MESSAGES")) != NULL) {
-		setlocale(LC_CTYPE, sysLocale);
+		setlocale(LC_MESSAGES, sysLocale);
 	}
 	if ((sysLocale = getenv("LC_ALL")) != NULL) {
-		setlocale(LC_CTYPE, sysLocale);
+		setlocale(LC_ALL, sysLocale);
 	}
 	if (sysLocale == NULL) {
 		setlocale(LC_ALL, defaultLocale);
@@ -265,7 +265,7 @@ char *prepare_regex(char *regex, int *bCase, char **regex_alpha) {
 		fprintf(stderr,
 		        "--regex need to contain \"\\0\" in combination"
 		        " with wordist, or an alpha option\n");
-		exit(0);
+		error();
 	} else {
 		log_event("- Rexgen (after rules): %s", regex);
 	}
