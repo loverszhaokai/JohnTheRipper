@@ -1,0 +1,6 @@
+1. ./john --skip-self-tests --nolog --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile
+
+2. ubuntu 14.04
+
+3. ./configure --enable-asan --disable-opencl --disable-cuda
+
