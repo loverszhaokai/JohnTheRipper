@@ -15,6 +15,14 @@ die unless (mkdir($workdir, 0700) || $!{EEXIST});
 $ENV{'OMP_NUM_THREADS'} = '1';
 setpriority(PRIO_PROCESS, 0, 19);
 
+if (1 != $#ARGV) {
+    print "usage: ./fuzz.pl /path/to/john format-name\n";
+    die;
+}
+
+$john_path = $ARGV[0];
+$format_name = $ARGV[1];
+
 sub try
 {
 	print "Trying format $f, hash $c\n";
@@ -23,7 +31,7 @@ sub try
 	print PW "$c\n";
 	close(PW);
 
-	open(JOHN, "| ./john --skip-self-tests --nolog --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
+	open(JOHN, "| $john_path --skip-self-tests --nolog --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
 	print JOHN "wrong password " x10 . "one\n";
 	print JOHN "two wrongs\n";
 	print JOHN "wrong password three\n";
@@ -43,7 +51,7 @@ sub try
 	}
 }
 
-open(TESTS, './john --list=format-tests --format=cpu | shuf |') || die;
+open(TESTS, "$john_path --list=format-tests --format=$format_name | shuf |") || die;
 while (<TESTS>) {
 	($f, $c) = /^([\w\d-]+)\t[^\t]+\t([^\t]+)\t/;
 	if ($f && $c) {
