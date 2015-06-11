@@ -196,9 +196,10 @@ for ($t = $from; $t <= $to; $t++) {
 
         ChangeCase();
 
-	if ("" != $dictionary_file) {
-	        InsertDictionary();
-	}
+	if ($dictionary_file eq "") {
+	} else {
+		InsertDictionary();
+        }
 }
 
 #
