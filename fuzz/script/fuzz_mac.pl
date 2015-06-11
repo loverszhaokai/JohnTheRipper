@@ -21,6 +21,7 @@ $workdir = 'run';
 $pwfile = $workdir . '/pw';
 $session = $workdir . '/s';
 $pot = $workdir . '/pot';
+$fuzz_method = "";
 
 die unless (mkdir($workdir, 0700) || $!{EEXIST});
 
@@ -123,6 +124,7 @@ for ($t = $from; $t <= $to; $t++) {
 	print "format        = $f\n";
 	print "original hash = $o\n";
 
+	$fuzz_method = "raw";
 	Run();
 
         print "\n";
@@ -132,6 +134,7 @@ for ($t = $from; $t <= $to; $t++) {
 		vec($c, $i, 8) = ord('9');
 		next if ($c eq $o);
 		#print "new=$c\n";
+		$fuzz_method = "Replace $i with 9";
 		Run();
 		$c = $o;
 	}
@@ -143,6 +146,7 @@ for ($t = $from; $t <= $to; $t++) {
 		vec($c, $i, 8) = ord('$');
 		next if ($c eq $o);
 		#print "new=$c\n";
+		$fuzz_method = "Replace $i with \$";
 		Run();
 		$c = $o;
 	}
@@ -154,6 +158,7 @@ for ($t = $from; $t <= $to; $t++) {
 		vec($c, $i, 8) = ord('*');
 		next if ($c eq $o);
 		#print "new=$c\n";
+		$fuzz_method = "Replace $i with \*";
 		Run();
 		$c = $o;
 	}
@@ -165,6 +170,7 @@ for ($t = $from; $t <= $to; $t++) {
 		vec($c, $i, 8) = ord('#');
 		next if ($c eq $o);
 		#print "new=$c\n";
+		$fuzz_method = "Replace $i with \#";
 		Run();
 		$c = $o;
 	}
@@ -178,6 +184,7 @@ for ($t = $from; $t <= $to; $t++) {
 		vec($c, $i + 1, 8) = $x;
 		next if ($c eq $o);
 		#print "new=$c\n";
+		$fuzz_method = "Swap $i";
 		Run();
 		$c = $o;
 	}
@@ -190,6 +197,7 @@ for ($t = $from; $t <= $to; $t++) {
 		print "j=$j\n";
 		$c = $o . chr(vec($o, length($o) - 1, 8)) x $j;
 		#print "new=$c\n";
+		$fuzz_method = "Append $j last char";
 		Run();
 		$j *= ($j + 1);
 	}
@@ -220,6 +228,7 @@ sub ChangeCase
 			vec($c, $i, 8) = vec($char, 0, 8);
 			next if ($c eq $o);
 			#print "new=$c\n";
+			$fuzz_method = "Change $i to uppper case";
 			Run();
 		}
 		$c = $o;
@@ -234,6 +243,7 @@ sub ChangeCase
 			vec($c, $i, 8) = vec($char, 0, 8);
 			next if ($c eq $o);
 			#print "new=$c\n";
+			$fuzz_method = "Change $i to lower case";
 			Run();
 		}
 		$c = $o;
@@ -249,6 +259,7 @@ sub ChangeCase
 		}
 	}
 	#print "new=$c\n";
+	$fuzz_method = "Change all to upper case";
 	Run();
 
 	print "\n";
@@ -261,6 +272,7 @@ sub ChangeCase
 		}
 	}
 	#print "new=$c\n";
+	$fuzz_method = "Change all to lower case";
 	Run();
 }
 
@@ -279,6 +291,7 @@ sub InsertDictionary
 		for ($j = 0; $j <= $#dictionary; $j++) {
 			$c = substr($c, 0, $i) . $dictionary[$j] . substr($c, $i);
 			#print "new=$c\n";
+			$fuzz_method = "Insert $dictionary[$j] before $j";
 			Run();
 			$c = $o;
 		}
@@ -306,6 +319,7 @@ sub Run
 
 	if ($? != 0) {
 		open(LOG, ">> fuzz-err.log") || die;
+		print LOG "fuzz method=$fuzz_method\n";
 		print LOG "$f $c $?\n";
 		close(LOG);
 
