@@ -265,7 +265,7 @@ sub InsertDictionary
 		for ($j = 0; $j <= $#dictionary; $j++) {
 			$c = substr($c, 0, $i) . $dictionary[$j] . substr($c, $i);
 			#print "new=$c\n";
-			$fuzz_method = "Insert $dictionary[$j] before $j";
+			$fuzz_method = "Insert $dictionary[$j] before $i";
 			Run();
 			$c = $o;
 		}
