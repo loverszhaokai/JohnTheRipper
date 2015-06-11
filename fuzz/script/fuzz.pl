@@ -1,5 +1,17 @@
 #!/usr/bin/perl -w
 
+#
+# Author: Alexander
+# Email: solar@openwall.com
+# Date: 2015-06-05
+#
+
+#
+# How to run
+#
+# ulimit -v 2097152; time ./fuzz.pl /path/to/john format-name &> fuzz.log
+#
+
 use Errno;
 
 # Processes per logical CPU
