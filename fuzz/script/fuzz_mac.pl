@@ -38,18 +38,19 @@ $dictionary_file = "";
 
 if (2 == $#ARGV) {
 	$dictionary_file = $ARGV[2];
+
+	#
+	# Init dictionary file
+	#
+	open($dic_handler, "<", $dictionary_file)
+		|| die "dictionary_file=$dictionary_file does not exist\n";
+	while ($line = <$dic_handler>) {
+		chomp $line;
+		$dictionary[$#dictionary + 1] = $line;
+	}
+	close($dic_handler);
 }
 
-#
-# Init dictionary file
-#
-open($dic_handler, "<", $dictionary_file)
-	|| die "dictionary_file=$dictionary_file does not exist\n";
-while ($line = <$dic_handler>) {
-	chomp $line;
-	$dictionary[$#dictionary + 1] = $line;
-}
-close($dic_handler);
 
 #
 # Get all formats name
@@ -195,7 +196,9 @@ for ($t = $from; $t <= $to; $t++) {
 
         ChangeCase();
 
-        InsertDictionary();
+	if ("" != $dictionary_file) {
+	        InsertDictionary();
+	}
 }
 
 #
@@ -292,7 +295,7 @@ sub Run
 	print PW "$c\n";
 	close(PW);
 
-	open(JOHN, "| $john_path --skip-self-tests --nolog --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
+	open(JOHN, "| $john_path --skip-self-tests --nolog --config=local.conf --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
 	print JOHN "wrong password " x10 . "one\n";
 	print JOHN "two wrongs\n";
 	print JOHN "wrong password three\n";
