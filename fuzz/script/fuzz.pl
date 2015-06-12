@@ -29,8 +29,8 @@ $ENV{'OMP_NUM_THREADS'} = '1';
 setpriority(PRIO_PROCESS, 0, 19);
 
 if (1 > $#ARGV || 2 < $#ARGV) {
-    print "usage: ./fuzz.pl /path/to/john format-name [dictionary]\n";
-    die;
+	print "usage: ./fuzz.pl /path/to/john format-name [dictionary]\n";
+	die;
 }
 
 $john_path = $ARGV[0];
@@ -69,6 +69,12 @@ die unless ($#fs >= 0 && $#fs == $#cs);
 
 printf "%u test vectors\n", $#fs + 1;
 
+$total_cases = 0;
+
+GetTotalCases();
+
+print "Total cases: $total_cases\n\n";
+
 $cpus = `grep -c ^processor /proc/cpuinfo`;
 chomp $cpus;
 $cpus = 1 if (!$cpus);
@@ -89,100 +95,177 @@ $pot .= "-$cpu";
 $pwfile .= "-$cpu";
 
 $seq = 0;
+$id = 0;
 
-for ($t = $from; $t <= $to; $t++) {
-	$f = $fs[$t];
-	$c = $cs[$t];
-	$o = $c;
 
-	print "\n";
-	print "format        = $f\n";
-	print "original hash = $o\n";
+Fuzz();
 
-	$fuzz_method = "raw";
-	Run();
 
-        print "\n";
-        print "->9\n\n";
-	# Replace chars with '9'
-	for ($i = 0; $i < length($c); $i++) {
-		vec($c, $i, 8) = ord('9');
-		next if ($c eq $o);
-		#print "new=$c\n";
-		$fuzz_method = "Replace $i with 9";
-		Run();
-		$c = $o;
+sub GetTotalCases
+{
+	print "GetTotalcases ...\n";
+	for ($t = 0; $t < $#fs; $t++) {
+		$f = $fs[$t];
+		$c = $cs[$t];
+		$o = $c;
+
+		print "\n";
+		print "format        = $f\n";
+		print "original hash = $o\n";
+
+		$count = 4 * length($c);
+
+		for ($i = 0; $i < length($c) - 1; $i++) {
+			if (chr(vec($c, $i, 8)) =~ /[9\$*#]/) {
+				$count--;
+			}
+		}
+		$total_cases += $count;
+
+		# Swap two adjacent chars
+		if (length($c) > 1) {
+			$count = length($c) - 1;
+			for ($i = 0; $i < length($c) - 1; $i++) {
+				if (vec($c, $i, 8) eq vec($c, $i + 1, 8)) {
+					$count--;
+				}
+			}
+		}
+		$total_cases += $count;
+
+		# Append many copies of the last char
+		$total_cases += 5;
+
+		# Change chars to upper/lower Case
+		for ($i = 0; $i < length($c); $i++) {
+			$char = chr(vec($c, $i, 8));
+			if ($char =~ /[a-z]/ || $char =~ /[A-Z]/) {
+				$total_cases++;
+			}
+		}
+
+		# Change all chars to upper Case
+		# Change all chars to lower Case
+		$total_cases += 2;
+
+		print "total_cases=$total_cases\n";
+
+		if (50 > length($c)) {
+			# Insert strings before each char
+			$total_cases += (1 + length($c)) * $#dictionary;
+		} else {
+			# Insert strings before and after these chars: ",.:#$*"
+			$count = 0;
+			for ($i = 0; $i < length($c); $i++) {
+				if (chr(vec($c, $i, 8)) =~ /[,.:#\$*]/) {
+					$count++;
+				}
+			}
+			$total_cases += (2 * $count) * $#dictionary;
+		}
+		print "total_cases=$total_cases\n";
 	}
+}
 
-	print "\n";
-	print "->\$\n\n";
-	# Replace chars with '$'
-	for ($i = 0; $i < length($c); $i++) {
-		vec($c, $i, 8) = ord('$');
-		next if ($c eq $o);
-		#print "new=$c\n";
-		$fuzz_method = "Replace $i with \$";
+#
+# Fuzz hashes and run john with the mutated hashes
+#
+sub Fuzz
+{
+	for ($t = $from; $t <= $to; $t++) {
+		$f = $fs[$t];
+		$c = $cs[$t];
+		$o = $c;
+
+		print "\n";
+		print "format        = $f\n";
+		print "original hash = $o\n";
+
+		$fuzz_method = "raw";
 		Run();
-		$c = $o;
+
+	        print "\n";
+	        print "->9\n\n";
+		# Replace chars with '9'
+		for ($i = 0; $i < length($c); $i++) {
+			vec($c, $i, 8) = ord('9');
+			next if ($c eq $o);
+			#print "new=$c\n";
+			$fuzz_method = "Replace $i with 9";
+			Run();
+			$c = $o;
+		}
+
+		print "\n";
+		print "->\$\n\n";
+		# Replace chars with '$'
+		for ($i = 0; $i < length($c); $i++) {
+			vec($c, $i, 8) = ord('$');
+			next if ($c eq $o);
+			#print "new=$c\n";
+			$fuzz_method = "Replace $i with \$";
+			Run();
+			$c = $o;
+		}
+
+		print "\n";
+		print "->*\n\n";
+		# Replace chars with '*'
+		for ($i = 0; $i < length($c); $i++) {
+			vec($c, $i, 8) = ord('*');
+			next if ($c eq $o);
+			#print "new=$c\n";
+			$fuzz_method = "Replace $i with \*";
+			Run();
+			$c = $o;
+		}
+
+		print "\n";
+		print "->#\n\n";
+		# Replace chars with '#'
+		for ($i = 0; $i < length($c); $i++) {
+			vec($c, $i, 8) = ord('#');
+			next if ($c eq $o);
+			#print "new=$c\n";
+			$fuzz_method = "Replace $i with \#";
+			Run();
+			$c = $o;
+		}
+
+		print "\n";
+		print "swap two adjacent chars\n\n";
+		# Swap two adjacent chars
+		for ($i = 0; $i < length($c) - 1; $i++) {
+			my $x = vec($c, $i, 8);
+			vec($c, $i, 8) = vec($c, $i + 1, 8);
+			vec($c, $i + 1, 8) = $x;
+			next if ($c eq $o);
+			#print "new=$c\n";
+			$fuzz_method = "Swap $i";
+			Run();
+			$c = $o;
+		}
+
+		print "\n";
+		print "Append many copies of the last char\n\n";
+		# Append many copies of the last char
+		$j = 1;
+		for ($i = 0; $i < 5; $i++) {
+			print "j=$j\n";
+			$c = $o . chr(vec($o, length($o) - 1, 8)) x $j;
+			#print "new=$c\n";
+			$fuzz_method = "Append $j last char";
+			Run();
+			$j *= ($j + 1);
+		}
+
+		ChangeCase();
+
+		if ($dictionary_file eq "") {
+		} else {
+			InsertDictionary();
+	        }
 	}
-
-	print "\n";
-	print "->*\n\n";
-	# Replace chars with '*'
-	for ($i = 0; $i < length($c); $i++) {
-		vec($c, $i, 8) = ord('*');
-		next if ($c eq $o);
-		#print "new=$c\n";
-		$fuzz_method = "Replace $i with \*";
-		Run();
-		$c = $o;
-	}
-
-	print "\n";
-	print "->#\n\n";
-	# Replace chars with '#'
-	for ($i = 0; $i < length($c); $i++) {
-		vec($c, $i, 8) = ord('#');
-		next if ($c eq $o);
-		#print "new=$c\n";
-		$fuzz_method = "Replace $i with \#";
-		Run();
-		$c = $o;
-	}
-
-	print "\n";
-	print "swap two adjacent chars\n\n";
-	# Swap two adjacent chars
-	for ($i = 0; $i < length($c) - 1; $i++) {
-		my $x = vec($c, $i, 8);
-		vec($c, $i, 8) = vec($c, $i + 1, 8);
-		vec($c, $i + 1, 8) = $x;
-		next if ($c eq $o);
-		#print "new=$c\n";
-		$fuzz_method = "Swap $i";
-		Run();
-		$c = $o;
-	}
-
-	print "\n";
-	print "Append many copies of the last char\n\n";
-	# Append many copies of the last char
-	$j = 1;
-	for ($i = 0; $i < 5; $i++) {
-		print "j=$j\n";
-		$c = $o . chr(vec($o, length($o) - 1, 8)) x $j;
-		#print "new=$c\n";
-		$fuzz_method = "Append $j last char";
-		Run();
-		$j *= ($j + 1);
-	}
-
-	ChangeCase();
-
-	if ($dictionary_file eq "") {
-	} else {
-		InsertDictionary();
-        }
 }
 
 #
@@ -260,14 +343,38 @@ sub InsertDictionary
 
 	$c =$o;
 
-	for ($i = 0; $i <= length($c); $i++) {
-		print "insert before pos=$i\n";
-		for ($j = 0; $j <= $#dictionary; $j++) {
-			$c = substr($c, 0, $i) . $dictionary[$j] . substr($c, $i);
-			#print "new=$c\n";
-			$fuzz_method = "Insert $dictionary[$j] before $i";
-			Run();
-			$c = $o;
+	if (50 > length($c)) {
+		# Insert strings before each char
+		for ($i = 0; $i <= length($c); $i++) {
+			print "insert before pos=$i\n";
+			for ($j = 0; $j <= $#dictionary; $j++) {
+				$c = substr($c, 0, $i) . $dictionary[$j] . substr($c, $i);
+				#print "new=$c\n";
+				$fuzz_method = "Insert $dictionary[$j] before $i";
+				Run();
+				$c = $o;
+			}
+		}
+	} else {
+		# Insert strings before and after these chars: ",.:#$*"
+		for ($i = 0; $i < length($c); $i++) {
+			if (chr(vec($c, $i, 8)) =~ /[,.:#\$*]/) {
+				print "insert before and after pos=$i\n";
+				for ($j = 0; $j <= $#dictionary; $j++) {
+					$c = substr($c, 0, $i) . $dictionary[$j] . substr($c, $i);
+					#print "new=$c\n";
+					$fuzz_method = "Insert $dictionary[$j] before $i";
+					Run();
+
+					$c = $o;
+					$c = substr($c, 0, $i + 1) . $dictionary[$j] . substr($c, $i + 1);
+					#print "new=$c\n";
+					$fuzz_method = "Insert $dictionary[$j] after $i";
+					Run();
+
+					$c = $o;
+				}
+			}
 		}
 	}
 }
@@ -277,7 +384,8 @@ sub InsertDictionary
 #
 sub Run
 {
-	print "Trying format $f, hash $c\n";
+	$id++;
+	print "Trying  ID=$id  Total Cases=$total_cases  format $f, hash $c\n";
 	open(PW, "> $pwfile") || die;
 	print PW "$c\n";
 	close(PW);
