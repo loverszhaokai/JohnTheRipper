@@ -413,7 +413,7 @@ sub Run
 	print PW "$c\n";
 	close(PW);
 
-	open(JOHN, "| $john_path --skip-self-tests --nolog --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
+	open(JOHN, "| $john_path --skip-self-tests --nolog --config=local.conf --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
 	print JOHN "wrong password " x10 . "one\n";
 	print JOHN "two wrongs\n";
 	print JOHN "wrong password three\n";
