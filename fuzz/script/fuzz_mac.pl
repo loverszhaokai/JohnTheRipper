@@ -407,7 +407,8 @@ sub InsertDictionary
 sub Run
 {
 	$id++;
-	print "Trying  ID=$id  Total Cases=$total_cases  format $f, hash $c\n";
+	print "Trying  ID=$id  Total Cases=$total_cases\n";
+	#print "Trying  ID=$id  Total Cases=$total_cases  format $f, hash $c\n";
 	open(PW, "> $pwfile") || die;
 	print PW "$c\n";
 	close(PW);
