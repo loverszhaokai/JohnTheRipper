@@ -29,8 +29,8 @@ $ENV{'OMP_NUM_THREADS'} = '1';
 setpriority(PRIO_PROCESS, 0, 19);
 
 if (1 > $#ARGV || 2 < $#ARGV) {
-    print "usage: ./fuzz.pl /path/to/john format-name [dictionary]\n";
-    die;
+	print "usage: ./fuzz.pl /path/to/john format-name [dictionary]\n";
+	die;
 }
 
 $john_path = $ARGV[0];
@@ -413,7 +413,7 @@ sub Run
 	print PW "$c\n";
 	close(PW);
 
-	open(JOHN, "| $john_path --skip-self-tests --nolog --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
+	open(JOHN, "| $john_path --skip-self-tests --nolog --config=local.conf --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
 	print JOHN "wrong password " x10 . "one\n";
 	print JOHN "two wrongs\n";
 	print JOHN "wrong password three\n";
