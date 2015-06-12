@@ -29,8 +29,8 @@ $ENV{'OMP_NUM_THREADS'} = '1';
 setpriority(PRIO_PROCESS, 0, 19);
 
 if (1 > $#ARGV || 2 < $#ARGV) {
-    print "usage: ./fuzz.pl /path/to/john format-name [dictionary]\n";
-    die;
+	print "usage: ./fuzz.pl /path/to/john format-name [dictionary]\n";
+	die;
 }
 
 $john_path = $ARGV[0];
