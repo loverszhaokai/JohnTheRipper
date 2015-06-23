@@ -135,7 +135,7 @@ static int valid(char *ciphertext, struct fmt_main *self)
 		goto err;
 	if ((p = strtokm(NULL, "$")) == NULL)	/* salt */
 		goto err;
-	if (strlen(p)  > SALT_SIZE)
+	if (strlen(p)  > sizeof(cur_salt->salt)-1)
 		goto err;
 	if ((p = strtokm(NULL, "")) == NULL)	/* hash */
 		goto err;
@@ -161,9 +161,7 @@ static void *get_salt(char *ciphertext)
 	ctcopy += 9;	/* skip over "$django$*" */
 	p = strtokm(ctcopy, "*");
 	cs.type = atoi(p);
-	p = strtokm(NULL, "*");
-	/* break up 'p' */
-	strtokm(p, "$");
+	strtokm(NULL, "$");
 	t = strtokm(NULL, "$");
 	cs.iterations = atoi(t);
 	t = strtokm(NULL, "$");

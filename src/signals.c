@@ -15,11 +15,6 @@
 #define _XOPEN_SOURCE 500 /* for setitimer(2) and siginterrupt(3) */
 #endif
 
-#ifdef __ultrix__
-#define __POSIX
-#define _POSIX_SOURCE
-#endif
-
 #define NEED_OS_TIMER
 #define NEED_OS_FORK
 #include "os.h"
@@ -31,9 +26,6 @@
 #include <windows.h>
 #endif
 
-#ifdef _SCO_C_DIALECT
-#include <limits.h>
-#endif
 #include <stdio.h>
 #if !AC_BUILT || HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -266,6 +258,7 @@ static void sig_install_abort(void)
  * CTRL+C is inherited by child processes."  So restore normal processing here
  * in case our parent (such as Johnny the GUI) had disabled it.
  */
+	SetConsoleCtrlHandler(NULL, FALSE);
 	SetConsoleCtrlHandler(sig_handle_abort_ctrl, TRUE);
 #endif
 
@@ -463,6 +456,7 @@ static void sig_remove_timer(void)
 	signal(SIGALRM, SIG_DFL);
 }
 
+#ifdef SIGUSR1
 static void sig_handle_status(int signum)
 {
 	/* We currently disable --fork for Cygwin in os.h due to problems
@@ -485,6 +479,7 @@ static void sig_handle_status(int signum)
 	sig_install(sig_handle_status, signum);
 #endif
 }
+#endif
 
 #ifndef BENCH_BUILD
 #ifdef SIGUSR2

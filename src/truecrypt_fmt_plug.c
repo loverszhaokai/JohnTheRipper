@@ -169,6 +169,7 @@ static void done(void)
 	MEM_FREE(first_block_dec);
 	MEM_FREE(key_buffer);
 	MEM_FREE(keyfiles_data);
+	MEM_FREE(keyfiles_length);
 }
 
 static int valid(char* ciphertext, int pos)
@@ -300,10 +301,17 @@ static void* get_salt(char *ciphertext)
 		if (!fp)
 			pexit("fopen %s", p);
 
-		fseek(fp, 0L, SEEK_END);
+		if (fseek(fp, 0L, SEEK_END) == -1)
+			pexit("fseek");
+
 		sz = ftell(fp);
-		fseek(fp, 0L, SEEK_SET);
-		(void) fread(keyfiles_data[idx], 1, sz, fp);
+
+		if (fseek(fp, 0L, SEEK_SET) == -1)
+			pexit("fseek");
+
+		if (fread(keyfiles_data[idx], 1, sz, fp) != sz)
+			pexit("fread");
+
 		keyfiles_length[idx] = sz;
 		fclose(fp);
 	}
@@ -364,10 +372,6 @@ static void AES_256_XTS_first_sector(const unsigned char *double_key,
 	}
 }
 
-// borrowed from https://github.com/bwalex/tc-play
-uint32_t crc32(const void *buf, size_t size);
-uint32_t crc32_intermediate(uint32_t crc, uint8_t d);
-
 int apply_keyfiles(unsigned char *pass, size_t pass_memsz, int nkeyfiles)
 {
 	int pl, k;
@@ -395,7 +399,7 @@ int apply_keyfiles(unsigned char *pass, size_t pass_memsz, int nkeyfiles)
 		crc = ~0U;
 
 		for (i = 0; i < kdata_sz; i++) {
-			crc = crc32_intermediate(crc, kdata[i]);
+			crc = jtr_crc32(crc, kdata[i]);
 			kpool[kpool_idx++] += (unsigned char)(crc >> 24);
 			kpool[kpool_idx++] += (unsigned char)(crc >> 16);
 			kpool[kpool_idx++] += (unsigned char)(crc >> 8);

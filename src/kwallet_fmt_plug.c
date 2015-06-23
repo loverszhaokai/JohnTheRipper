@@ -135,7 +135,6 @@ static void *get_salt(char *ciphertext)
 	return (void *)cur_salt;
 }
 
-#define MIN(x,y) ((x) < (y) ? (x) : (y))
 static void password2hash(const char *password, unsigned char *hash, int *key_size)
 {
 	SHA_CTX ctx;

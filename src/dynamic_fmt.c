@@ -87,7 +87,7 @@ static DYNAMIC_primitive_funcp _Funcs_1[] =
 #include "memory.h"
 #include "unicode.h"
 #include "johnswap.h"
-#include "pkzip.h"
+#include "crc32.h"
 #include "aligned.h"
 #include "fake_salts.h"
 #include "base64_convert.h"
@@ -110,11 +110,11 @@ extern void MD5_body(MD5_word x[15],MD5_word out[4]);
 #define STRINGIZE2(s) #s
 #define STRINGIZE(s) STRINGIZE2(s)
 
-#define MIN(a, b)    (((a) < (b)) ? (a) : (b))
-
 static struct fmt_main fmt_Dynamic;
 static struct fmt_main *pFmts;
 static int nFmts;
+static int nLocalFmts;
+static struct fmt_main *pLocalFmts;
 static int force_md5_ctx;
 static void dynamic_RESET(struct fmt_main *fmt);
 
@@ -1514,9 +1514,19 @@ static int crypt_all(int *pcount, struct db_salt *salt)
 			if (curdat.using_flat_buffers_sse2_ok) {
 				if (curdat.store_keys_normal_but_precompute_md5_to_output2_base16_to_input1) {
 #ifdef _OPENMP
-					DynamicFunc__MD5_crypt_input2_overwrite_input1(0,m_count,0);
+					if (curdat.base16_to_input1_sha1)
+						DynamicFunc__SHA1_crypt_input2_overwrite_input1(0,m_count, 0);
+					else if (curdat.base16_to_input1_sha256)
+						DynamicFunc__SHA256_crypt_input2_overwrite_input1(0,m_count, 0);
+					else
+						DynamicFunc__MD5_crypt_input2_overwrite_input1(0,m_count,0);
 #else
-					DynamicFunc__MD5_crypt_input2_overwrite_input1();
+					if (curdat.base16_to_input1_sha1)
+						DynamicFunc__SHA1_crypt_input2_overwrite_input1();
+					else if (curdat.base16_to_input1_sha256)
+						DynamicFunc__SHA256_crypt_input2_overwrite_input1();
+					else
+						DynamicFunc__MD5_crypt_input2_overwrite_input1();
 #endif
 				} else if (curdat.store_keys_normal_but_precompute_md5_to_output2_base16_to_input1_offset32) {
 					unsigned int i;
@@ -1873,7 +1883,7 @@ static unsigned char *AddSaltHash(unsigned char *salt, unsigned int len, unsigne
 	return pRet;
 }
 
-static unsigned char *FindSaltHash(unsigned char *salt, unsigned int len, u32 crc)
+static unsigned char *FindSaltHash(unsigned char *salt, unsigned int len, CRC32_t crc)
 {
 	unsigned int idx = crc & DYNA_SALT_HASH_MOD;
 	dyna_salt_list_entry *p;
@@ -1896,12 +1906,12 @@ static unsigned char *FindSaltHash(unsigned char *salt, unsigned int len, u32 cr
 
 static unsigned char *HashSalt(unsigned char *salt, unsigned int len)
 {
-	u32 crc = 0xffffffff, i;
+	CRC32_t crc = 0xffffffff, i;
 	unsigned char *ret_hash;
 
 	// compute the hash.
 	for (i = 0; i < len; ++i)
-		crc = pkzip_crc32(crc,salt[i]);
+		crc = jtr_crc32(crc,salt[i]);
 	crc = ~crc;
 
 	ret_hash = FindSaltHash(salt, len, crc);
@@ -7057,7 +7067,10 @@ int dynamic_SETUP(DYNAMIC_Setup *Setup, struct fmt_main *pFmt)
 
 	curdat.store_keys_normal_but_precompute_md5_to_output2 = !!(Setup->startFlags&MGF_KEYS_CRYPT_IN2);
 
-	curdat.store_keys_normal_but_precompute_md5_to_output2_base16_to_input1 = !!(Setup->startFlags&MGF_KEYS_BASE16_IN1);
+	curdat.store_keys_normal_but_precompute_md5_to_output2_base16_to_input1 = !!(Setup->startFlags&(MGF_KEYS_BASE16_IN1|MGF_KEYS_BASE16_IN1_SHA1|MGF_KEYS_BASE16_IN1_SHA256));
+	curdat.base16_to_input1_sha1 = !!(Setup->startFlags&MGF_KEYS_BASE16_IN1_SHA1);
+	curdat.base16_to_input1_sha256 = !!(Setup->startFlags&MGF_KEYS_BASE16_IN1_SHA256);
+
 	if (!!(Setup->startFlags&MGF_KEYS_BASE16_X86_IN1)) {
 		curdat.store_keys_normal_but_precompute_md5_to_output2_base16_to_input1=2;
 	}
@@ -7438,6 +7451,14 @@ static int LoadOneFormat(int idx, struct fmt_main *pFmt)
 	return 1;
 }
 
+struct fmt_main *dynamic_Register_local_format() {
+	int num=nLocalFmts++;
+	if (!pLocalFmts)
+		pLocalFmts = mem_calloc_tiny(1000*sizeof(struct fmt_main), 16);
+	LoadOneFormat(num+6000, &(pLocalFmts[num]));
+	return &(pLocalFmts[num]);
+}
+
 int dynamic_Register_formats(struct fmt_main **ptr)
 {
 	int count, i, idx, single=-1, wildcard = 0;
@@ -7500,6 +7521,11 @@ static struct fmt_main *dynamic_Get_fmt_main(int which)
 		private_subformat_data *pPriv = pFmts[i].private.data;
 		if (!strcmp(pPriv->dynamic_WHICH_TYPE_SIG, label))
 			return &pFmts[i];
+	}
+	for (i = 0; i < nLocalFmts; ++i) {
+		private_subformat_data *pPriv = pLocalFmts[i].private.data;
+		if (!strcmp(pPriv->dynamic_WHICH_TYPE_SIG, label))
+			return &pLocalFmts[i];
 	}
 	return NULL;
 }
