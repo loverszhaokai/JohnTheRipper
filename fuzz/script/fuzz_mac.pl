@@ -9,7 +9,7 @@
 #
 # How to run
 #
-# ulimit -v 2097152; time ./fuzz.pl /path/to/john format-name &> fuzz.log
+# ulimit -v 2097152; time ./fuzz_mac.pl /path/to/john format-name &> fuzz.log
 #
 
 use Errno;
@@ -17,7 +17,7 @@ use Errno;
 # Processes per logical CPU
 $factor = 4;
 
-$workdir = '/dev/shm/fuzz';
+$workdir = 'run';
 $pwfile = $workdir . '/pw';
 $session = $workdir . '/s';
 $pot = $workdir . '/pot';
@@ -52,18 +52,38 @@ if (2 == $#ARGV) {
 	close($dic_handler);
 }
 
+
 #
-# Get all test vector
+# Get all formats name
 #
-open(TESTS, "$john_path --list=format-tests --format=$format_name | shuf |") || die;
-while (<TESTS>) {
-	($f, $c) = /^([\w\d-]+)\t[^\t]+\t([^\t]+)\t/;
-	if ($f && $c) {
-		$fs[$#fs + 1] = $f;
-		$cs[$#cs + 1] = $c;
+open(FORMATS, "$john_path --list=formats --format=$format_name |") || die;
+while (<FORMATS>) {
+	($line) = /^([ ,\w\d-]+)/;
+	@words = split(/, /, $line);
+	for ($i = 0; $i <= $#words; $i++) {
+		$formats[$#formats + 1] = $words[$i];
 	}
 }
-close(TESTS);
+close(FORMATS);
+
+#
+# Get all test cases in each format
+#
+for ($i = 0; $i <= $#formats; $i++) {
+	print "i=$i  ";
+	print $formats[$i];
+	print "\n";
+
+	open(TESTS, "$john_path --list=format-tests --format=$formats[$i] |") || die;
+	while (<TESTS>) {
+		($f, $c) = /^([\w\d-]+)\t[^\t]+\t([^\t]+)\t/;
+		if ($f && $c) {
+			$fs[$#fs + 1] = $f;
+			$cs[$#cs + 1] = $c;
+		}
+	}
+	close(TESTS);
+}
 
 die unless ($#fs >= 0 && $#fs == $#cs);
 
@@ -75,13 +95,15 @@ GetTotalCases();
 
 print "Total cases: $total_cases\n\n";
 
-$cpus = `grep -c ^processor /proc/cpuinfo`;
+$cpus = `sysctl -n hw.ncpu`;
 chomp $cpus;
 $cpus = 1 if (!$cpus);
 
 print "$cpus CPUs\n";
 
 $cpus *= $factor;
+
+$cpu = 1;
 
 for ($cpu = 0; $cpu < $cpus - 1; $cpu++) {
 	last if (fork() == 0);
@@ -391,7 +413,7 @@ sub Run
 	print PW "$c\n";
 	close(PW);
 
-	open(JOHN, "| $john_path --skip-self-tests --nolog --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
+	open(JOHN, "| $john_path --skip-self-tests --nolog --config=local.conf --encoding=raw --stdin --session=$session --pot=$pot --format=$f $pwfile") || die;
 	print JOHN "wrong password " x10 . "one\n";
 	print JOHN "two wrongs\n";
 	print JOHN "wrong password three\n";
@@ -411,3 +433,4 @@ sub Run
 		$seq++;
 	}
 }
+
