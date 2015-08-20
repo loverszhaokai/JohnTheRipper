@@ -713,6 +713,9 @@ static char *fmt_self_test_body(struct fmt_main *format,
 		dyna_salt_remove(salt);
 	} while (done != 3);
 
+	if (format->params.benchmark_length == 0 && format->params.salt_size == 0)
+		return "This format is saltless, but it will report separate \"Many salts\" vs. \"Only one salt\" speeds";
+
 	format->methods.clear_keys();
 	format->private.initialized = 2;
 
@@ -794,6 +797,43 @@ static void test_fmt_8_bit(struct fmt_main *format, void *binary,
 		*is_ignore_8th_bit = 0;
 
 	free(plain_copy);
+}
+
+static int is_slow_hash(const char *hash)
+{
+	if (!strcmp(hash, "cloudkeychain") || !strcmp(hash, "Bitcoin") ||
+	    !strcmp(hash, "django-scrypt") || !strcmp(hash, "LUKS") ||
+	    !strcmp(hash, "EncFS") || !strcmp(hash, "scrypt") ||
+	    !strcmp(hash, "rar") || !strcmp(hash, "pufferfish") ||
+	    !strcmp(hash, "eCryptfs") || !strcmp(hash, "KeePass") ||
+	    !strcmp(hash, "tc_ripemd160") || !strcmp(hash, "RAR5") ||
+	    !strcmp(hash, "Drupal7") || !strcmp(hash, "tc_whirlpool") ||
+	    !strcmp(hash, "sha1crypt") || !strcmp(hash, "dominosec8") ||
+	    !strcmp(hash, "7z") || !strcmp(hash, "Oracle12C") ||
+	    !strcmp(hash, "Django") || !strcmp(hash, "Office") ||
+	    !strcmp(hash, "SunMD5"))
+		return 1;
+
+	return 0;
+}
+
+// Detect benchmark_length bug
+static char * test_benchmark_length(struct fmt_main *format)
+{
+	if (format->params.benchmark_length == 0) {
+		if (format->params.salt_size == 0)
+			return "This format is saltless, but it will report separate \"Many salts\" vs. \"Only one salt\" speeds";
+		else if (is_slow_hash(format->params.label))
+			return "This format is very slow, but it will report separate \"Many salts\" vs. \"Only one salt\" speeds";
+	}
+
+	if (format->params.benchmark_length == -1 && format->params.salt_size != 0) {
+		// It is invalid for the fast saled hashes
+		// if (!is_slow_hash(format->params.label))
+		// return "The benchmark_length should be 0 for fast salted hashes";
+	}
+
+	return NULL;
 }
 
 static char *fmt_self_test_full_body(struct fmt_main *format,
@@ -1268,6 +1308,10 @@ static char *fmt_self_test_full_body(struct fmt_main *format,
 			return err_buf;
 		}
 	}
+
+	ret = test_benchmark_length(format);
+	if (ret)
+		return ret;
 
 	format->methods.clear_keys();
 	format->private.initialized = 2;
