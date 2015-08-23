@@ -849,6 +849,23 @@ static void test_fmt_8_bit(struct fmt_main *format, void *binary,
 	free(plain_copy);
 }
 
+static int has_same_cipher_or_plain(struct fmt_main *format, char *ciphertext,
+	char *plaintext, const int index)
+{
+	int i;
+	struct fmt_tests *current;
+
+	i = 0;
+	current = format->params.tests;
+	while (i++ < index)
+		current++;
+
+	if (!strcmp(ciphertext, current->ciphertext) ||
+	    is_same_password(format, plaintext, current->plaintext))
+		return 1;
+	return 0;
+}
+
 static char * check_all_index(struct fmt_main *format, void *binary,
 	char *ciphertext, char *plaintext, int *key_index, const int index)
 {
@@ -884,7 +901,7 @@ static char * check_all_index(struct fmt_main *format, void *binary,
 
 	for (i = 0; i < max; i++)
 	if (key_index[i] == index) {
-		// The ith password is correct
+		// The i-th password is correct
 		if (!format->methods.cmp_one(binary, i)) {
 			snprintf(err_buf, sizeof(err_buf),
 				"cmp_one(%d) failed", i);
@@ -895,30 +912,9 @@ static char * check_all_index(struct fmt_main *format, void *binary,
 		if (format->methods.binary_hash[size] &&
 		    format->methods.get_hash[size](i) !=
 		    format->methods.binary_hash[size](binary)) {
-#ifndef DEBUG
 			sprintf(err_buf, "get_hash[%d](%d) %x!=%x", size,
 				i, format->methods.get_hash[size](i),
 				format->methods.binary_hash[size](binary));
-#else
-			// Dump out as much as possible (up to 3 full bytes). This can
-			// help in trying to track down problems, like needing to SWAP
-			// the binary or other issues, when doing BE ports.  Here
-			// PASSWORD_HASH_SIZES is assumed to be 7. This loop will max
-			// out at 6, in that case (i.e. 3 full bytes).
-			int maxi=size;
-			while (maxi+2 < PASSWORD_HASH_SIZES && format->methods.binary_hash[maxi]) {
-				if (format->methods.binary_hash[++maxi] == NULL) {
-					--maxi;
-					break;
-				}
-			}
-			if (format->methods.get_hash[maxi] && format->methods.binary_hash[maxi])
-				sprintf(err_buf, "get_hash[%d](%d) %x!=%x", size, i,
-				        format->methods.get_hash[maxi](i),
-				        format->methods.binary_hash[maxi](binary));
-			else
-				sprintf(err_buf, "get_hash[%d](%d)", size, i);
-#endif
 			return err_buf;
 		}
 
@@ -944,10 +940,19 @@ static char * check_all_index(struct fmt_main *format, void *binary,
 			return err_buf;
 		}
 	} else {
-
-		// The ith password is incorrect
+		// The i-th password is incorrect
 		if (!format->methods.cmp_one(binary, i))
 			return NULL;
+
+		// In case that the ciphertext of the key_index[i]-th test vector
+		// is the same with the index-th ciphertext
+		// Or
+		// In case that the plaintext of the key_indexp[i]-th test vector
+		// is the same with the index-th plaintext
+		if (key_index[i] != -1 &&
+		    has_same_cipher_or_plain(format, ciphertext, plaintext, key_index[i]))
+			return NULL;
+
 		printf("Warning: cmp_one(%d) unexpected success\n", index);
 
 		for (size = 0; size < PASSWORD_HASH_SIZES; size++)
@@ -962,11 +967,13 @@ static char * check_all_index(struct fmt_main *format, void *binary,
 		if (format->methods.cmp_exact(ciphertext, i) &&
 		    !(format->params.flags & FMT_NOT_EXACT)) {
 /*
- * This is fatal error since the ith password is incorrect and the format does
+ * This is fatal error since the i-th password is incorrect and the format does
  * not set FMT_NOT_EXACT
  */
-			sprintf(err_buf, "ERROR: cmp_exact(%d) unexpected success, plaintext='%s' get_key(%d)='%s'",
-				index, plaintext, i, format->methods.get_key(i));
+			printf("ERROR: plaintext='%s' is the expected password but '%s' is also a correct password\n",
+				plaintext, format->methods.get_key(i));
+			sprintf(err_buf, "cmp_exact(%d) unexpected success",
+				index);
 			return err_buf;
 		}
 	}
@@ -985,7 +992,6 @@ static unsigned int hash(const int n)
 
         return h;
 }
-
 
 // n == 0 all correct
 // n == 1 all incorrect
@@ -1010,48 +1016,44 @@ static char * test_even_odd_index(struct fmt_main *format, void *binary,
 	}
 
 	for (i = 0; i < max; i++) {
-	if (n == 0) {
-		// All correct
-		goto correct;
-	} else if (n == 1) {
-		// All incorrect
-	} else if (n == 2) {
-		// Even correct
-		if (i % 2 == 0)
+		if (n == 0) {
+			// All correct
 			goto correct;
-	} else if (n == 3) {
-		// Odd correct
-		if (i % 2 == 1)
-			goto correct;
-	} else if (n == 4) {
-		// Even hash(i) correct
-		if (hash(i) % 2 == 0)
-			goto correct;
-	} else if (n == 5) {
-		// Odd hash(i) correct
-		if (hash(i) % 2 == 1)
-			goto correct;
-	}
+		} else if (n == 1) {
+			// All incorrect
+		} else if (n == 2) {
+			// Even correct
+			if (i % 2 == 0)
+				goto correct;
+		} else if (n == 3) {
+			// Odd correct
+			if (i % 2 == 1)
+				goto correct;
+		} else if (n == 4) {
+			// Even hash(i) correct
+			if (hash(i) % 2 == 0)
+				goto correct;
+		} else if (n == 5) {
+			// Odd hash(i) correct
+			if (hash(i) % 2 == 1)
+				goto correct;
+		}
 
-	// Set incorrect passwords
-	fmt_set_key(longcand(format, i, ml), i);
-	key_index[i] = -1;
-	continue;
+		// Set incorrect passwords
+		fmt_set_key(longcand(format, i, ml), i);
+		key_index[i] = -1;
+		continue;
 
 correct:
-	// Set correct passwords
-	if (j == total_test) {
-		current = format->params.tests;
-		j = 0;
-	}
-	fmt_set_key(current->plaintext, i);
-
-	if (j != index && is_same_password(format, plaintext, current->plaintext))
-		key_index[i] = index;
-	else
+		// Set correct passwords
+		if (j == total_test) {
+			current = format->params.tests;
+			j = 0;
+		}
+		fmt_set_key(current->plaintext, i);
 		key_index[i] = j;
-	j++;
-	current++;
+		j++;
+		current++;
 	}
 
 	ret = check_all_index(format, binary, ciphertext, plaintext,
@@ -1075,13 +1077,14 @@ static char * test_every_index(struct fmt_main *format, void *binary,
  * key_index stores test vector index
  * e.g. 0 is the first test vector;
  *      1 is the second test vector;
- *      if key_index[i] == index, then the ith passwords is the correct password;
- *      -1 means the ith passwords is wrong passwords
+ *      if key_index[i] == index, then the i-th password is the correct password;
+ *      -1 means the i-th password is wrong password
  */
 	max = format->params.max_keys_per_crypt;
 	key_index = mem_alloc(max * sizeof(int));
 
 	for (i = 0; i < 6; i++) {
+		format->methods.set_salt(salt);
 		ret = test_even_odd_index(format, binary, ciphertext, plaintext, key_index,
 			index, ml, total_test, i);
 		if (ret) {
@@ -1089,9 +1092,7 @@ static char * test_every_index(struct fmt_main *format, void *binary,
 			snprintf(err_buf, sizeof(err_buf), "test every index: %s", ret);
 			return err_buf;
 		}
-
 		format->methods.clear_keys();
-		format->methods.set_salt(salt);
 	}
 
 	MEM_FREE(key_index);
@@ -1436,8 +1437,6 @@ static char *fmt_self_test_full_body(struct fmt_main *format,
 		    SALT_HASH_SIZE)
 			return "salt_hash";
 
-		format->methods.set_salt(salt);
-
 #ifndef BENCH_BUILD
 		if (extra_tests && maxlength == 0) {
 			//int min = format->params.min_keys_per_crypt;
@@ -1489,18 +1488,18 @@ static char *fmt_self_test_full_body(struct fmt_main *format,
 #endif
 		// Test FMT_CASE
 		format->methods.clear_keys();
+		format->methods.set_salt(salt);
 		test_fmt_case(format, binary, ciphertext, plaintext,
 			&is_case_sensitive, &plaintext_has_alpha);
+		format->methods.clear_keys();
 
 		// Test FMT_8_BIT
-		format->methods.clear_keys();
 		format->methods.set_salt(salt);
 		test_fmt_8_bit(format, binary, ciphertext, plaintext,
 			&is_ignore_8th_bit, &plaintext_is_blank);
+		format->methods.clear_keys();
 
 		// Test every index
-		format->methods.clear_keys();
-		format->methods.set_salt(salt);
 		ret = test_every_index(format, binary, salt, ciphertext, plaintext,
 			index, ml, ntests);
 		if (ret)
