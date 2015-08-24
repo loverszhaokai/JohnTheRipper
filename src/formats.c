@@ -942,7 +942,7 @@ static char * check_all_index(struct fmt_main *format, void *binary,
 	} else {
 		// The i-th password is incorrect
 		if (!format->methods.cmp_one(binary, i))
-			return NULL;
+			continue;
 
 		// In case that the ciphertext of the key_index[i]-th test vector
 		// is the same with the index-th ciphertext
@@ -951,7 +951,7 @@ static char * check_all_index(struct fmt_main *format, void *binary,
 		// is the same with the index-th plaintext
 		if (key_index[i] != -1 &&
 		    has_same_cipher_or_plain(format, ciphertext, plaintext, key_index[i]))
-			return NULL;
+			continue;
 
 		printf("Warning: cmp_one(%d) unexpected success\n", index);
 
