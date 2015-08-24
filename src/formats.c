@@ -859,6 +859,14 @@ static int has_same_cipher_or_plain(struct fmt_main *format, char *ciphertext,
 	current = format->params.tests;
 	while (i++ < index)
 		current++;
+/*
+ * Special case for AFS due to the crypt_all(). When test '$K4$a8dc8aeaa2c48a97,',
+ * '' and 'XXXXXXXX' generates the same key for crypt_all().
+ */
+	if (!strcmp(format->params.label, "AFS") &&
+	    !strcmp(ciphertext, "$K4$a8dc8aeaa2c48a97,"))
+	if (!strcmp(plaintext, "") && !strcmp(current->plaintext, "XXXXXXXX"))
+		return 1;
 
 	if (!strcmp(ciphertext, current->ciphertext) ||
 	    is_same_password(format, plaintext, current->plaintext))
