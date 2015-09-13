@@ -863,6 +863,95 @@ static void get_longest_common_string(char *fstr, char *sstr, int *first_index,
 	*second_index = sp - max + 1;
 }
 
+/*
+ * This function is to detect whether the format need to unify cases in split()
+ * and add FMT_SPLIT_UNIFIES_CASE
+ */
+static void test_fmt_split_unifies_case_3(struct fmt_main *format,
+	char *ciphertext, int *has_change_case, int *is_need_unify_case)
+{
+	char *cipher_copy, *split_ret;
+	int index;
+	void *orig_binary, *orig_salt;
+	void *binary, *salt;
+
+	cipher_copy = strdup(ciphertext);
+	split_ret = format->methods.split(cipher_copy, 0, format);
+
+	orig_binary = NULL;
+	orig_salt = NULL;
+
+	binary = format->methods.binary(split_ret);
+	if (binary != NULL) {
+
+		orig_binary = mem_alloc(format->params.binary_size);
+		memcpy(orig_binary, binary, format->params.binary_size);
+
+		salt = format->methods.salt(split_ret);
+		if (salt != NULL) {
+			orig_salt = mem_alloc(format->params.salt_size);
+			memcpy(orig_salt, salt, format->params.salt_size);
+		}
+	}
+
+/*
+ * Find the second '$' if the ciphertext begins with '$'. We shoud not change the
+ * cases between the first and the second '$', since the string is format label
+ * and split() may check it
+ */
+	index = 0;
+	if (cipher_copy[0] == '$') {
+		index = 1;
+		while (cipher_copy[index] && cipher_copy[index] != '$')
+			index++;
+	}
+	if (!index && !strncmp(cipher_copy, "@dynamic=", 9)) {
+		index = 1;
+		while (cipher_copy[index] && cipher_copy[index] != '@')
+			index++;
+	}
+
+	// Lower case
+	strlwr(cipher_copy + index);
+
+	if (strcmp(cipher_copy, ciphertext))
+	if (format->methods.valid(cipher_copy, format)) {
+
+		*has_change_case = 1;
+		split_ret = format->methods.split(cipher_copy, 0, format);
+		binary = format->methods.binary(split_ret);
+
+		if (binary != NULL)
+		if (memcmp(orig_binary, binary, format->params.binary_size) != 0) {
+			// Do not need to unify cases in split() and add
+			// FMT_SPLIT_UNIFIES_CASE
+			*is_need_unify_case = 0;
+		}
+	}
+
+	// Upper case
+	strupr(cipher_copy + index);
+
+	if (strcmp(cipher_copy, ciphertext))
+	if (format->methods.valid(cipher_copy, format)) {
+
+		*has_change_case = 1;
+		split_ret = format->methods.split(cipher_copy, 0, format);
+		binary = format->methods.binary(split_ret);
+
+		if (binary != NULL)
+		if (memcmp(orig_binary, binary, format->params.binary_size) != 0) {
+			// Do not need to unify cases in split() and add
+			// FMT_SPLIT_UNIFIES_CASE
+			*is_need_unify_case = 0;
+		}
+	}
+
+	MEM_FREE(orig_salt);
+	MEM_FREE(orig_binary);
+	MEM_FREE(cipher_copy);
+}
+
 static int test_fmt_split_unifies_case(struct fmt_main *format, char *ciphertext)
 {
 	char *cipher_copy, *ret;
@@ -953,6 +1042,8 @@ static char *fmt_self_test_full_body(struct fmt_main *format,
 	int is_ignore_8th_bit = 1;     // Is ignore 8th bit, FMT_8_BIT
 	int is_split_unifies_case = 0; // Is split() unifies case
 	int cnt_split_unifies_case = 0;// just in case only the last test case unifies.
+	int is_change_case = 0;        // Is change cases of ciphertext and it is valid
+	int is_need_unify_case = 1;    // Is need to unify cases in split()
 
 	// validate that there are no NULL function pointers
 	if (format->methods.prepare == NULL)    return "method prepare NULL";
@@ -1129,6 +1220,12 @@ static char *fmt_self_test_full_body(struct fmt_main *format,
 			}
 		}
 #endif
+
+		if (!(format->params.flags & FMT_SPLIT_UNIFIES_CASE) &&
+			format->params.binary_size != 0 && is_need_unify_case)
+			test_fmt_split_unifies_case_3(format, ciphertext,
+				&is_change_case, &is_need_unify_case);
+
 		++cnt_split_unifies_case;
 		// here we find cases where the unify_case flag is not set
 		// but should be, is set but should not be, and where the
@@ -1427,6 +1524,13 @@ static char *fmt_self_test_full_body(struct fmt_main *format,
 	} else if (is_split_unifies_case == -1) {
 		snprintf(err_buf, sizeof(err_buf),
 			"FMT_SPLIT_UNIFIES_CASE is only working for some cases");
+		return err_buf;
+	}
+
+	if (!(format->params.flags & FMT_SPLIT_UNIFIES_CASE) &&
+		format->params.binary_size != 0 && is_change_case && is_need_unify_case) {
+		snprintf(err_buf, sizeof(err_buf),
+			"should unify cases in split() and set FMT_SPLIT_UNIFIES_CASE");
 		return err_buf;
 	}
 
